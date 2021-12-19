@@ -145,7 +145,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 ## SS mle fit
 ## bsfake.sgssmle2.Rout: sgssmle2.R
 ## btfake.sgssmle2.Rout: sgssmle2.R
-%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda
+%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
 
 ######################################################################
