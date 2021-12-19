@@ -127,7 +127,7 @@ main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
 
 ######################################################################
 
-## Fake data (Frozen for Bolker)
+## Fake data
 
 ## main.srts.bs.fake.Rout main.srts.bt.fake.Rout
 pushfake: main.srts.bs.fake.rds.op main.srts.bt.fake.rds.op
@@ -146,8 +146,8 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 ## (Frozen for Bolker)
 
 ## SS mle fit
-## bsfake.sgssmle2.Rout: sgssmle2.R
-## btfake.sgssmle2.Rout: sgssmle2.R
+## bsfake.sgssmle2.Rout: sgssmle2.R bsfake.sgts.rds 
+## btfake.sgssmle2.Rout: sgssmle2.R btfake.sgts.rds 
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
 
