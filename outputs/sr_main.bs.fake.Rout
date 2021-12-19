@@ -1,0 +1,83 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(mgcv)
+> library(tidyr)
+> library(dplyr)
+> 
+> bbinsig <- 3
+> 
+> library(shellpipes)
+> loadEnvironments()
+> 
+> sr <- rdsRead()
+> summary(sr)
+     prov                date              reinf            omicron       
+ Length:529         Min.   :2021-10-01   Mode :logical   Min.   :   0.00  
+ Class :character   1st Qu.:2021-10-20   FALSE:377       1st Qu.:   0.00  
+ Mode  :character   Median :2021-11-16   TRUE :152       Median :   1.00  
+                    Mean   :2021-11-08                   Mean   :  51.17  
+                    3rd Qu.:2021-11-27                   3rd Qu.:   8.00  
+                    Max.   :2021-12-05                   Max.   :3225.00  
+                                                                          
+     delta             time            tot               prop       
+ Min.   : 0.000   Min.   : 1.00   Min.   :   1.00   Min.   :0.0000  
+ 1st Qu.: 0.000   1st Qu.:20.00   1st Qu.:   1.00   1st Qu.:0.0000  
+ Median : 1.000   Median :47.00   Median :   4.00   Median :0.6667  
+ Mean   : 3.745   Mean   :39.95   Mean   :  54.91   Mean   :0.5091  
+ 3rd Qu.: 3.000   3rd Qu.:58.00   3rd Qu.:  14.00   3rd Qu.:1.0000  
+ Max.   :91.000   Max.   :66.00   Max.   :3316.00   Max.   :1.0000  
+                                                                    
+        datef    
+ 2021-12-02: 18  
+ 2021-12-03: 18  
+ 2021-11-26: 17  
+ 2021-11-29: 17  
+ 2021-12-01: 17  
+ 2021-11-30: 16  
+ (Other)   :426  
+> nr <- nrow(sr)
+> sr <- (sr 
++ 	%>% rowwise
++ 	%>% transmute(prov, time, reinf
++ 		, omicron = wraprbetabinom_shape(1, prop, tot, bbinsig)
++ 		, delta = wraprbetabinom_shape(1, 1-prop, tot, bbinsig)
++ 		, tot = omicron+delta
++ 		, prop = omicron/tot
++ 	)
++ )
+> 
+> summary(sr)
+     prov                time         reinf            omicron       
+ Length:529         Min.   : 1.00   Mode :logical   Min.   :   0.00  
+ Class :character   1st Qu.:20.00   FALSE:377       1st Qu.:   0.00  
+ Mode  :character   Median :47.00   TRUE :152       Median :   1.00  
+                    Mean   :39.95                   Mean   :  51.51  
+                    3rd Qu.:58.00                   3rd Qu.:   8.00  
+                    Max.   :66.00                   Max.   :3273.00  
+     delta              tot               prop       
+ Min.   :  0.000   Min.   :   1.00   Min.   :0.0000  
+ 1st Qu.:  0.000   1st Qu.:   1.00   1st Qu.:0.0000  
+ Median :  1.000   Median :   4.00   Median :0.7000  
+ Mean   :  3.807   Mean   :  55.32   Mean   :0.5111  
+ 3rd Qu.:  3.000   3rd Qu.:  13.00   3rd Qu.:1.0000  
+ Max.   :243.000   Max.   :3516.00   Max.   :1.0000  
+> 
+> rdsSave(sr)
+> 

@@ -112,13 +112,23 @@ sr_main.rds: sr_ts.chop2.props.rds
 %.bs.rda: betasigma.rda
 	$(forcelink)
 
+.PRECIOUS: %.bt.rds
+%.bt.rds: %.rds
+	$(link)
+.PRECIOUS: %.bt.rda
+%.bt.rda: betatheta.rda
+	$(forcelink)
+
 ######################################################################
 
 ## Fake data
 
 ## sr_main.bs.fake.Rout: bbinfake.R
+## sr_main.bt.fake.Rout: bbinfake.R
 %.fake.Rout: bbinfake.R %.rda %.rds
 	$(pipeR)
+
+
 
 ######################################################################
 
