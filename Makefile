@@ -127,7 +127,7 @@ main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
 
 ######################################################################
 
-## Fake data
+## Fake data (Frozen for Bolker)
 
 ## main.srts.bs.fake.Rout main.srts.bt.fake.Rout
 pushfake: main.srts.bs.fake.rds.op main.srts.bt.fake.rds.op
@@ -143,7 +143,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
-## Leave the paradigm for now and make something 13:33#
+## (Frozen for Bolker)
 
 ## SS mle fit
 ## bsfake.sgssmle2.Rout: sgssmle2.R
