@@ -58,6 +58,7 @@ Sources += $(wildcard *.dict.tsv)
 ## Line-list sources and cleaning
 
 ## Combined line list merged by CP
+data/sgtf_ref.rds: data ;
 sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 	$(pipeR)
 
