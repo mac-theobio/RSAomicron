@@ -42,10 +42,10 @@ Sources += content.mk ## stuff from mvRt Makefile
 ######################################################################
 
 ## Crib rule
-
 ## ln -s ../omike cribdir ##
 
 Ignore += cribdir
+.PRECIOUS: %.R
 %.R: cribdir/%.R
 	$(copy)
 
