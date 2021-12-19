@@ -39,6 +39,9 @@ Sources += $(wildcard *.R *.md)
 
 Sources += content.mk ## stuff from mvRt Makefile
 
+pipeclean:
+	$(RM) *.Rout *.rds *.rda
+
 ######################################################################
 
 ## Crib rule
@@ -156,22 +159,48 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 null.Rout: parms.R
 	$(pipeR)
 
+
+######################################################################
+
+## Beta fitting
+
+impmakeR += btfit
+%.btfit.sgts.Rout: parms.R %.sgts.props.rds betatheta.rda
+	$(pipeR)
+
+impmakeR += bsfit
+%.bsfit.sgts.Rout: parms.R %.sgts.props.rds betasigma.rda
+	$(pipeR)
+
+######################################################################
+
+## Parameters to fix
 impmakeR += ssfix
-%.ssfix.Rout: parms.R %.rda %.rds ssfix.rda
+%.ssfix.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfix.rda
 	$(pipeR)
 
-## Merge with bt rule when this works
-impmakeR += btenv
-%.btenv.Rout: parms.R %.rds betatheta.rda
+impmakeR += ssfitspec
+%.ssfitspec.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfitspec.rda
 	$(pipeR)
 
-## btfake.sgts.props.btenv.ssfix.sgssindfit.Rout: sgssindfit.R sgssindfit.R sgssindfit.R sgssindfit.R
+impmakeR += ssfitboth
+%.ssfitboth.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfitboth.rda
+	$(pipeR)
+
+######################################################################
+
+## mle2 fitting
+
+## btfake.btfit.ssfix.sgssindfit.Rout: sgssindfit.R
+## bsfake.btfit.ssfitspec.sgssindfit.Rout: sgssindfit.R
+
+## sgtf_ref.btfit.ssfitspec.sgssindfit.Rout: sgssindfit.R
 
 ## ssfix.btenv.rda:
 
 ## If this works, merge back into mle2
-## btfake.indfit.Rout: indfit.R
-%.sgssindfit.Rout: sgssindfit.R %.rds %.rda
+impmakeR += sgssindfit
+%.sgssindfit.Rout: sgssindfit.R %.sgts.rds %.sgts.rda
 	$(pipeR)
 
 ######################################################################

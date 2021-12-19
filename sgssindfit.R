@@ -14,9 +14,6 @@ summary(dat)
 ## Consider: look at other b-b parameterizations
 
 bbsizemax <- 100
-
-## Gains of S-gene binding by omicron are very unlikely; failure to bind S gene is less unlikely
-
 ## Iterate until convergence
 cList = list(maxit = 5000)
 
