@@ -58,22 +58,23 @@ Sources += $(wildcard *.dict.tsv)
 ## Line-list sources and cleaning
 
 ## Combined line list merged by CP
-sgtf_ref.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
+sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
+	$(pipeR)
 
 ## No other current sources
-
-## Current version
-sr_ll.rds: sgtf_ref.rds
-	$(forcelink)
+## Merging code in omike or in osac
 
 ######################################################################
 
 ## Aggregating into time series
 
-sr_ts.Rout: sr_agg.R sr_ll.rds
+impmakeR += srts
+%.srts.Rout: sr_agg.R %.srll.rds
 	$(pipeR)
 
-sg_ts.Rout: sgtf_agg.R sr_ts.rds
+## Aggregate across reinf for sg
+impmakeR += sgts
+%.sgts.Rout: sgtf_agg.R %.srts.rds
 	$(pipeR)
 
 ######################################################################
@@ -93,12 +94,10 @@ impmakeR += props
 %.props.Rout: props.R %.rds simDates.rda
 	$(pipeR)
 
-## sg_ts.chop2.props.Rout:
-sg_main.rds: sg_ts.chop2.props.rds
+sr_main.rds: sgtf_ref.srts.chop2.props.Rout
 	$(forcelink)
 
-## sr_ts.chop2.props.Rout:
-sr_main.rds: sr_ts.chop2.props.rds
+sg_main.rds: sgtf_ref.sgts.chop2.props.Rout
 	$(forcelink)
 
 ######################################################################
@@ -129,6 +128,11 @@ pushfake: sr_main.bs.fake.rds.op sr_main.bt.fake.rds.op
 ## sr_main.bt.fake.Rout: bbinfake.R
 %.fake.Rout: bbinfake.R %.rda %.rds
 	$(pipeR)
+
+bsfake.rds: outputs/sr_main.bs.fake.rds
+	$(forcelink)
+btfake.rds: outputs/sr_main.bt.fake.rds.op
+	$(forcelink)
 
 ######################################################################
 
