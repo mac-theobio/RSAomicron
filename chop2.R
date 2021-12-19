@@ -3,8 +3,8 @@ library(dplyr)
 library(shellpipes)
 
 dat <- rdsRead()
-maxDate <- max(dat$date) - 2
+maxTime <- max(dat$time) - 2
 
 (dat 
-	%>% filter(date <= maxDate)
+	%>% filter(time <= maxTime)
 ) %>% rdsSave

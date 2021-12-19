@@ -2,7 +2,8 @@ library(mgcv)
 library(tidyr)
 library(dplyr)
 
-bbinsig <- 3
+bbinshape <- 3
+set.seed(2117)
 
 library(shellpipes)
 loadEnvironments()
@@ -13,8 +14,8 @@ nr <- nrow(sr)
 sr <- (sr 
 	%>% rowwise
 	%>% transmute(prov, time, reinf
-		, omicron = wraprbetabinom_shape(1, prop, tot, bbinsig)
-		, delta = wraprbetabinom_shape(1, 1-prop, tot, bbinsig)
+		, omicron = wraprbetabinom_shape(1, prop, tot, bbinshape)
+		, delta = wraprbetabinom_shape(1, 1-prop, tot, bbinshape)
 		, tot = omicron+delta
 		, prop = omicron/tot
 	)

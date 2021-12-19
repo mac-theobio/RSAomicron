@@ -70,7 +70,8 @@ sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv
 ## Aggregating into time series
 
 impmakeR += srts
-%.srts.Rout: sr_agg.R %.srll.rds
+## simDates is for zeroDate
+%.srts.Rout: sr_agg.R %.srll.rds simDates.rda
 	$(pipeR)
 
 ## Aggregate across reinf for sg
@@ -90,9 +91,8 @@ impmakeR += chop2
 
 ## Proportion calculations
 
-## simDates is for zeroDate
 impmakeR += props
-%.props.Rout: props.R %.rds simDates.rda
+%.props.Rout: props.R %.rds
 	$(pipeR)
 
 ## sgtf_ref.srts.chop2.props.Rout:
@@ -109,7 +109,7 @@ main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
 ## Standard "theta" formulation θ = a + b
 .PRECIOUS: %.bt.rds
 %.bt.rds: %.rds
-	$(link)
+	$(forcelink)
 .PRECIOUS: %.bt.rda
 %.bt.rda: betatheta.rda
 	$(forcelink)
@@ -117,7 +117,7 @@ main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
 ## Weird JD formulation σ = ab/(a+b)
 .PRECIOUS: %.bs.rds
 %.bs.rds: %.rds
-	$(link)
+	$(forcelink)
 .PRECIOUS: %.bs.rda
 %.bs.rda: betasigma.rda
 	$(forcelink)
@@ -126,6 +126,7 @@ main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
 
 ## Fake data
 
+## main.srts.bs.fake.Rout main.srts.bt.fake.Rout
 pushfake: main.srts.bs.fake.rds.op main.srts.bt.fake.rds.op
 
 impmakeR += fake
@@ -136,6 +137,10 @@ bsfake.srts.rds: outputs/main.srts.bs.fake.rds
 	$(forcelink)
 btfake.srts.rds: outputs/main.srts.bt.fake.rds
 	$(forcelink)
+
+######################################################################
+
+## bsfake.sgts.Rout:
 
 ######################################################################
 

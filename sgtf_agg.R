@@ -6,7 +6,7 @@ library(shellpipes)
 loadEnvironments()
 
 ts <- (rdsRead()
-	%>% group_by(prov, date)
+	%>% group_by(prov, time)
 	%>% summarise(
 		omicron=sum(omicron), delta=sum(delta)
 		, .groups="drop"
