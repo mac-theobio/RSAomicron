@@ -160,16 +160,14 @@ impmakeR += ssfix
 %.ssfix.Rout: parms.R %.rda ssfix.rda
 	$(pipeR)
 
-## Merge with bt if works
+## Merge with bt rule when this works
 impmakeR += btenv
-%.btenv.Rout: parms.R %.rda betatheta.rda
+%.btenv.Rout: parms.R %.rds betatheta.rda
 	$(pipeR)
 
 ## btfake.sgts.props.btenv.ssfix.Rout:
 
-## standard betatheta.ssfix.rda
-
-%.regfix.Rout: parms.R %.sgts.props.rds betatheta.rda ssfix.rda
+## ssfix.btenv.rda:
 
 ## If this works, merge back into mle2
 ## btfake.indfit.Rout: indfit.R
