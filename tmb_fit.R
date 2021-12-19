@@ -64,8 +64,7 @@ binom_args <- list(data = tmb_data,
                    ## inner.method = "BFGS",
                    inner.control = list(maxit = 1000,
                                         fail.action = rep("warning", 3)),
-                   ## map(): fix logain parameter to starting value {= true value, -7} (see ?MakeADFun)
-                   map = list(logain = factor(NA), log_theta = factor(NA)),
+                   map = list(log_theta = factor(NA)),
                    silent = TRUE)
 tmb_binom <- do.call(MakeADFun, binom_args)
 
@@ -125,7 +124,7 @@ if (FALSE) {
   tmb1 <- MakeADFun(tmb_data,
                     tmb_pars_bigsd,
                     random = c("b"),
-                    map = list(logain = factor(NA), log_sd = factor(c(NA, 1))),
+                    map = list(log_sd = factor(c(NA, 1))),
                     silent = TRUE)
   tmb1$fn()
 

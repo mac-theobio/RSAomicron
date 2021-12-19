@@ -53,7 +53,6 @@ coef.TMB <- function(x, random = FALSE) {
 ## from ?jacobian: ‘method.args=list(eps=1e-4, d=0.0001,
 ##   zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2,
 ##      show.details=FALSE)’ is set as the default.
-
 ## from ?grad:
 ## ‘d’ gives the
 ##      fraction of ‘x’ to use for the initial numerical approximation.
