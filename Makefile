@@ -140,7 +140,13 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
-## bsfake.sgts.Rout:
+## Leave the paradigm for now and make something 13:33#
+
+## SS mle fit
+## bsfake.sgssmle2.Rout: sgssmle2.R
+## btfake.sgssmle2.Rout: sgssmle2.R
+%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda
+	$(pipeR)
 
 ######################################################################
 
