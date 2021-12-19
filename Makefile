@@ -157,7 +157,7 @@ null.Rout: parms.R
 	$(pipeR)
 
 impmakeR += ssfix
-%.ssfix.Rout: parms.R %.rda ssfix.rda
+%.ssfix.Rout: parms.R %.rda %.rds ssfix.rda
 	$(pipeR)
 
 ## Merge with bt rule when this works
@@ -165,13 +165,13 @@ impmakeR += btenv
 %.btenv.Rout: parms.R %.rds betatheta.rda
 	$(pipeR)
 
-## btfake.sgts.props.btenv.ssfix.Rout:
+## btfake.sgts.props.btenv.ssfix.sgssindfit.Rout: sgssindfit.R sgssindfit.R sgssindfit.R sgssindfit.R
 
 ## ssfix.btenv.rda:
 
 ## If this works, merge back into mle2
 ## btfake.indfit.Rout: indfit.R
-%.sgssindfit.Rout: sgssindfit.R %.sgts.props.rds betatheta.rda
+%.sgssindfit.Rout: sgssindfit.R %.rds %.rda
 	$(pipeR)
 
 ######################################################################
