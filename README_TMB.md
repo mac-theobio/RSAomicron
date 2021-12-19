@@ -9,9 +9,9 @@
 
 ## Current status
 
-- fits current fake (`btfake.sgts.rds`) data OK, with some issues:
+- fits current fake (`btfake.sgts.rds`) data OK (both `logain` and `lodrop` estimates are small but reasonable, around -4), with some issues:
    - `log_sd` of delta-r is small (-4), its SD cannot be recovered
-   - cov matrix is non-pos-def even excluding `log_sd`
+   - cov matrix is non-pos-def even once we exclude `log_sd`
 - `tmb_CI.R` currently failing
 
 ## Issues/to-do
