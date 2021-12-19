@@ -57,7 +57,7 @@ Sources += $(wildcard *.dict.tsv)
 
 ## Line-list sources and cleaning
 
-## Combined line list merged by CP
+## Combined line list merged by CP 9 Dec
 data/sgtf_ref.rds: data ;
 sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 	$(pipeR)
@@ -95,23 +95,18 @@ impmakeR += props
 %.props.Rout: props.R %.rds simDates.rda
 	$(pipeR)
 
-sr_main.rds: sgtf_ref.srts.chop2.props.Rout
+## sgtf_ref.srts.chop2.props.Rout:
+main.srts.rds: sgtf_ref.srts.chop2.props.rds
 	$(forcelink)
 
-sg_main.rds: sgtf_ref.sgts.chop2.props.Rout
+main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
 	$(forcelink)
 
 ######################################################################
 
 ## beta formulations
 
-.PRECIOUS: %.bs.rds
-%.bs.rds: %.rds
-	$(link)
-.PRECIOUS: %.bs.rda
-%.bs.rda: betasigma.rda
-	$(forcelink)
-
+## Standard "theta" formulation θ = a + b
 .PRECIOUS: %.bt.rds
 %.bt.rds: %.rds
 	$(link)
@@ -119,20 +114,27 @@ sg_main.rds: sgtf_ref.sgts.chop2.props.Rout
 %.bt.rda: betatheta.rda
 	$(forcelink)
 
+## Weird JD formulation σ = ab/(a+b)
+.PRECIOUS: %.bs.rds
+%.bs.rds: %.rds
+	$(link)
+.PRECIOUS: %.bs.rda
+%.bs.rda: betasigma.rda
+	$(forcelink)
+
 ######################################################################
 
 ## Fake data
 
-pushfake: sr_main.bs.fake.rds.op sr_main.bt.fake.rds.op
+pushfake: main.srts.bs.fake.rds.op main.srts.bt.fake.rds.op
 
-## sr_main.bs.fake.Rout: bbinfake.R
-## sr_main.bt.fake.Rout: bbinfake.R
+impmakeR += fake
 %.fake.Rout: bbinfake.R %.rda %.rds
 	$(pipeR)
 
-bsfake.rds: outputs/sr_main.bs.fake.rds
+bsfake.srts.rds: outputs/main.srts.bs.fake.rds
 	$(forcelink)
-btfake.rds: outputs/sr_main.bt.fake.rds.op
+btfake.srts.rds: outputs/main.srts.bt.fake.rds
 	$(forcelink)
 
 ######################################################################
