@@ -151,6 +151,18 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
 
+tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic_fit_fixedloc.cpp logistic_fit.h tmb_funs.rda
+
+tmb_eval.Rout: tmb_eval.R tmb_fit.rda outputs/ssbinsimfake.rds tmb_funs.rda
+
+tmb_diagnose_lodrop.Rout: tmb_diagnose_lodrop.R tmb_fit.rda outputs/ssbinsimfake.rds tmb_funs.rda
+
+tmb_ci.Rout: tmb_ci.R tmb_fit.rda
+
+tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
+
+
+
 ######################################################################
 
 ## More experimental branching stuff
