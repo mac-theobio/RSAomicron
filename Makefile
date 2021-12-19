@@ -55,14 +55,72 @@ Sources += $(wildcard *.dict.tsv)
 
 ######################################################################
 
+## Line-list sources and cleaning
+
 ## Combined line list merged by CP
 sgtf_ref.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 
-sr_clean.Rout: sr_clean.R sgtf_ref.rds
+## No other current sources
+
+## Current version
+sr_ll.rds: sgtf_ref.rds
+	$(forcelink)
+
+######################################################################
+
+## Aggregating into time series
+
+sr_ts.Rout: sr_agg.R sr_ll.rds
 	$(pipeR)
 
-sr.Rout: sr_agg.R sr_clean.rds dataDates.rda
+sg_ts.Rout: sgtf_agg.R sr_ts.rds
 	$(pipeR)
+
+######################################################################
+
+## Date stuff
+
+impmakeR += chop2
+%.chop2.Rout: chop2.R %.rds
+	$(pipeR)
+
+######################################################################
+
+## Proportion calculations
+
+## simDates is for zeroDate
+impmakeR += props
+%.props.Rout: props.R %.rds simDates.rda
+	$(pipeR)
+
+## sg_ts.chop2.props.Rout:
+sg_main.rds: sg_ts.chop2.props.rds
+	$(forcelink)
+
+## sr_ts.chop2.props.Rout:
+sr_main.rds: sr_ts.chop2.props.rds
+	$(forcelink)
+
+######################################################################
+
+## beta formulations
+
+.PRECIOUS: %.bs.rds
+%.bs.rds: %.rds
+	$(link)
+.PRECIOUS: %.bs.rda
+%.bs.rda: betasigma.rda
+	$(forcelink)
+
+######################################################################
+
+## Fake data
+
+## sr_main.bs.fake.Rout: bbinfake.R
+%.fake.Rout: bbinfake.R %.rda %.rds
+	$(pipeR)
+
+######################################################################
 
 ### Makestuff
 
