@@ -43,7 +43,10 @@ Sources += content.mk ## stuff from mvRt Makefile
 
 ## Crib rule
 
-%.R: omike/%.R
+## ln -s ../omike cribdir ##
+
+Ignore += cribdir
+%.R: cribdir/%.R
 	$(copy)
 
 ######################################################################
@@ -52,7 +55,7 @@ Sources += $(wildcard *.dict.tsv)
 
 ######################################################################
 
-## Read summarize and code provinces
+## Combined line list merged by CP
 sgtf_ref.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 
 sr_clean.Rout: sr_clean.R sgtf_ref.rds
