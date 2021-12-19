@@ -21,15 +21,21 @@
 - explore reasons for difficulty in estimating log-sd. Profile; regularize/prior?
 - trouble-shoot `tmb_CI.R`
 
+### cosmetic/cleanup
+
+- move province-name-fixing machinery (i.e. disambiguating `loc` parameters) upstream
+- generate predictions with evenly spaced time values for prettier pred curves
+
 ### medium
 
-- switches for fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
-    - making loc a fixed effect seemed necessary to get workable answers: can we relax?
+- machinery for automatic binom/beta-binom switching/robust fitting
 - `SIMULATE` methods
+- switches for fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
+    - making loc a fixed effect seemed necessary to get workable answers: can we relax this?
 - adjustable beta-binomial parameterizations? Do we really need this?
 - log-scale/robust machinery
 - work up a similar thing for the re-infection data
-- could also/alternatively try using standard mixed model (also good for comparison of effects of allowing for drop/gain)
+- alternatively try using standard mixed model (also good for comparison of effects of allowing for drop/gain)
 - also had to put an upper bound on beta-binom precision parameter
 - try on an *ensemble* of fake data??
 - set up priors/flag for priors?
