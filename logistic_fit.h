@@ -7,6 +7,7 @@ Type baselogis(int tvec, Type loc, Type deltar, Type lodrop, Type logain) {
 }
 
 // compute baselogis entirely on the log scale
+template<class Type>
 Type baselogis_logprob(int tvec, Type loc, Type deltar, Type lodrop, Type logain) {
 	// convert input parameters from logit (lo) to log scale (log_, )
 	Type log_drop = -logspace_add(Type(0), -lodrop);

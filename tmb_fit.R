@@ -1,34 +1,39 @@
 library(shellpipes)
-rpcall("tmb_fit.Rout tmb_fit.R outputs/ssbinsimfake.rds logistic_fit.cpp tmb_funs.rda")
+rpcall("tmb_fit.Rout tmb_fit.R btfake.sgts.rds logistic_fit.cpp tmb_funs.rda")
 library(TMB)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 
+##
 fixedloc <- TRUE
-tmb_file <- if (fixedloc) "logistic_fit_fixedloc" else "logistic_fit"
-
+if (!fixedloc) stop("random-effects loc no longer implemented; rescue from mvRt")
+tmb_file <- "logistic_fit_fixedloc"
 
 TMB::compile(paste0(tmb_file, ".cpp"))
 dyn.load(dynlib(tmb_file))
 
 loadEnvironments()
-names(rdsRead())
+s0 <- rdsRead()
 ## make fake sim data use my previous format
 ## TODO: standardize on something appropriate
-ss <- (readRDS("outputs/ssbinsimfake.rds")
+ss <- (s0
   %>% mutate(province = factor(prov))
   %>% group_by(province)
-  %>% transmute(province, t = as.numeric(date - min(date)),
-                dropouts = omicron,
-                total_positives = omicron + delta)
+    %>% transmute(province,
+                  t = time - min(time),
+                  dropouts = omicron,
+                  total_positives = omicron + delta)
   %>% ungroup()
 )
 
 
-ggplot(ss, aes(t, dropouts/total_positives)) + geom_point() +
-  facet_wrap(~province) +
-  geom_smooth(method = "gam", method.args = list(family = binomial),
-              aes(weight = total_positives))
+gg0 <- (ggplot(ss, aes(t, dropouts/total_positives))
+    + geom_point(aes(size = total_positives), alpha=0.5)
+    + facet_wrap(~province)
+    + geom_smooth(method = "gam", method.args = list(family = binomial),
+                  aes(weight = total_positives))
+)
+print(gg0)
 
 np <- length(levels(ss$province))
 tmb_data <- c(ss, list(nprov = np, debug = 0))
@@ -38,20 +43,20 @@ tmb_pars_binom <- list(
     lodrop = -4,
     logain = -7)
 
-if (!fixedloc) {
-  nRE <- 2 ## number of REs per province {deltar and loc}
-  tmb_pars_binom <- c(tmb_pars_binom,
-                      list(loc = 20,
-                           b = rep(0, nRE * np),
-                           log_sd = rep(1, nRE),
-                           corr = rep(0, nRE*(nRE-1)/2)))
-} else {
-  nRE <- 1
-  tmb_pars_binom <- c(tmb_pars_binom,
-                      list(loc = rep(20, np),
-                           b = rep(0, nRE * np),
-                           log_sd = rep(1, nRE)))
-}
+## pars for random-loc model
+## nRE <- 2 ## number of REs per province {deltar and loc}
+## tmb_pars_binom <- c(tmb_pars_binom,
+##                     list(loc = 20,
+##                          b = rep(0, nRE * np),
+##                          log_sd = rep(1, nRE),
+##                          corr = rep(0, nRE*(nRE-1)/2)))
+
+nRE <- 1
+tmb_pars_binom <- c(tmb_pars_binom,
+                    list(loc = rep(20, np),
+                         b = rep(0, nRE * np),
+                         log_sd = rep(1, nRE)))
+
 
 binom_args <- list(data = tmb_data,
                    parameters = tmb_pars_binom,
@@ -66,7 +71,8 @@ tmb_binom <- do.call(MakeADFun, binom_args)
 
 
 ## Check whether the objective function output looks reasonable to Ben
-tmb_binom$fn() 
+(r0 <- tmb_binom$fn())
+stopifnot(is.finite(r0))
 summary(tmb_binom$report()$prob)
 
 ## Fit!
@@ -81,7 +87,9 @@ system.time(
 ## 0.6 seconds
 class(tmb_binom) <- "TMB"
 print(tmb_binom_opt)
-sdreport(tmb_binom)
+
+## inner-optimization failure!
+## sdreport(tmb_binom)
 
 ## update binomial args for beta-binomial case
 betabinom_args <- binom_args
@@ -104,6 +112,8 @@ tmb_betabinom_opt <- with(tmb_betabinom,
                                 upper = uvec)
                           )
 class(tmb_betabinom) <- "TMB"
+sdreport(tmb_betabinom)
+## log_sd variance is small (NaN SD) but otherwise OK
 
 if (FALSE) {
   library(tmbstan)
