@@ -150,6 +150,34 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
+## More experimental branching stuff
+
+## Accumulate parameters
+null.Rout: parms.R
+	$(pipeR)
+
+impmakeR += ssfix
+%.ssfix.Rout: parms.R %.rda ssfix.rda
+	$(pipeR)
+
+## Merge with bt if works
+impmakeR += btenv
+%.btenv.Rout: parms.R %.rda betatheta.rda
+	$(pipeR)
+
+## btfake.sgts.props.btenv.ssfix.Rout:
+
+## standard betatheta.ssfix.rda
+
+%.regfix.Rout: parms.R %.sgts.props.rds betatheta.rda ssfix.rda
+
+## If this works, merge back into mle2
+## btfake.indfit.Rout: indfit.R
+%.sgssindfit.Rout: sgssindfit.R %.sgts.props.rds betatheta.rda
+	$(pipeR)
+
+######################################################################
+
 ### Makestuff
 
 Sources += Makefile

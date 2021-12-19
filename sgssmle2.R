@@ -15,11 +15,6 @@ summary(dat)
 
 bbsizemax <- 100
 
-## Gains of S-gene binding by omicron are very unlikely; failure to bind S gene is less unlikely
-fixList = list(logain=-7, lodrop=-4)
-fixList = list(logain=-7)
-fixList = list()
-
 ## Iterate until convergence
 cList = list(maxit = 5000)
 
