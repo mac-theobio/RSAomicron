@@ -153,9 +153,9 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic_fit_fixedloc.cpp logistic_fit.h tmb_funs.rda
 
-tmb_eval.Rout: tmb_eval.R tmb_fit.rda outputs/ssbinsimfake.rds tmb_funs.rda
+tmb_eval.Rout: tmb_eval.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
 
-tmb_diagnose_lodrop.Rout: tmb_diagnose_lodrop.R tmb_fit.rda outputs/ssbinsimfake.rds tmb_funs.rda
+tmb_diagnose_lodrop.Rout: tmb_diagnose_lodrop.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
 
 tmb_ci.Rout: tmb_ci.R tmb_fit.rda
 

@@ -48,13 +48,41 @@ coef.TMB <- function(x, random = FALSE) {
     }
     return(r)
 }
-vcov.TMB <- function(x) {
+
+## FIXME: allow to work harder if non-pos-def?
+## from ?jacobian: ‘method.args=list(eps=1e-4, d=0.0001,
+##   zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2,
+##      show.details=FALSE)’ is set as the default.
+
+## from ?grad:
+## ‘d’ gives the
+##      fraction of ‘x’ to use for the initial numerical approximation.
+##      The default means the initial approximation uses ‘0.0001 * x’.
+##      ‘eps’ is used instead of ‘d’ for elements of ‘x’ which are zero
+##      (absolute value less than zero.tol).  ‘zero.tol’ tolerance used
+##      for deciding which elements of ‘x’ are zero.  ‘r’ gives the number
+##      of Richardson improvement iterations (repetitions with successly
+##      smaller ‘d’. The default ‘4’ general provides good results, but
+##      this can be increased to ‘6’ for improved accuracy at the cost of
+##      more evaluations.  ‘v’ gives the reduction factor.  ‘show.details’
+##      is a logical indicating if detailed calculations should be shown.
+default.method.args <- list(eps=1e-4, d=0.0001,
+                            zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2,
+                            show.details=FALSE)
+vcov.TMB <- function(x, method.args = NULL) {
+    m.args <- default.method.args
+    if (length(method.args) > 0) {
+        for (n in names(method.args)) {
+            m.args[[n]] <- method.args[[n]]
+        }
+    }
     if (!require("numDeriv")) stop('need numDeriv package for TMB vcov')
     H <- numDeriv::jacobian(func = x$gr,
-                            x = fixef.TMB(x))
+                            x = coef(x),
+                            method.args = m.args)
     ## fixme: robustify?
     V <- solve(H)
-    nn <- names(fixef.TMB(x))
+    nn <- names(coef(x))
     dimnames(V) <- list(nn,nn)
     return(V)
 }
