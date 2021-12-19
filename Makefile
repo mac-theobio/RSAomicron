@@ -123,12 +123,12 @@ sr_main.rds: sr_ts.chop2.props.rds
 
 ## Fake data
 
+pushfake: sr_main.bs.fake.rds.op sr_main.bt.fake.rds.op
+
 ## sr_main.bs.fake.Rout: bbinfake.R
 ## sr_main.bt.fake.Rout: bbinfake.R
 %.fake.Rout: bbinfake.R %.rda %.rds
 	$(pipeR)
-
-
 
 ######################################################################
 
