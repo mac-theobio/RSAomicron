@@ -23,11 +23,39 @@ ss <- (ss
              pred_upr = plogis(rr$value + 1.96*rr$sd))
 )
 
+## predicted probabilities (2)
+## deep-copy TMB object, then modify data within it appropriately
+## FIXME: modularize/hide
+pred_bb <- tmb_betabinom
+e2 <- copyEnv(environment(tmb_betabinom$fn))
+environment(pred_bb$fn) <- environment(pred_bb$gr) <-
+    environment(pred_bb$report) <- pred_bb$env <- e2
+newdata0 <- with(e2$data,
+                expand.grid(province = unique(province),
+                            t = unique(t)))
+n <- nrow(newdata0)
+newdata <- c(newdata0,
+             e2$data[c("debug", "nprov")],
+             list(dropouts = rep(NA_real_, n),
+                  total_positives = rep(NA_real_, n)))
+e2$data <- newdata
+rr <- sdreport(pred_bb)
+
+ss2 <- (newdata0
+    %>% as_tibble()
+    %>% mutate(
+            province = levels(ss$province)[province + 1],
+            pred = plogis(rr$value),
+            pred_lwr = plogis(rr$value - 1.96*rr$sd),
+            pred_upr = plogis(rr$value + 1.96*rr$sd))
+)
+
 gg1 <- (ggplot(ss, aes(t, colour = province))
   + geom_point(aes(y=dropouts/total_positives, size = total_positives))
-  + geom_line(aes(y=pred))
-  + geom_ribbon(aes(fill = province, ymin = pred_lwr, ymax = pred_upr),
-                colour = NA, alpha = 0.2)
+  + geom_line(data = ss2, aes(y=pred))
+    + geom_ribbon(data = ss2,
+                  aes(fill = province, ymin = pred_lwr, ymax = pred_upr),
+                  colour = NA, alpha = 0.2)
   + facet_wrap(~province)
 )
 print(gg1)

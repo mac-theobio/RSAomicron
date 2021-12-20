@@ -24,7 +24,6 @@
 ### cosmetic/cleanup
 
 - move province-name-fixing machinery (i.e. disambiguating `loc` parameters) upstream
-- generate predictions with evenly spaced time values for prettier pred curves
 
 ### medium
 

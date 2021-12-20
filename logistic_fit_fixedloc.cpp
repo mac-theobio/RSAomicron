@@ -19,7 +19,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(lodrop);              // log-odds of false negative for SGTF (universal)
   PARAMETER(logain);              // log-odds of false positive for SGTF (universal)
   PARAMETER(log_theta);           // log of theta (Beta dispersion parameter)
-  PARAMETER_VECTOR(log_sd);       // SDs of {loc, deltar} REs
+  PARAMETER(log_sd);              // SDs of {loc, deltar} REs
   // PARAMETER_VECTOR(corr);         // correlation among SDs (unused now since only 1 RE per block)
 
   int nobs = dropouts.size();
@@ -56,13 +56,13 @@ Type objective_function<Type>::operator() ()
 	vector<Type> prob(nobs);
 	Type s1, s2, s3;
 
+	vector<Type> deltar_vec = deltar + exp(log_sd)*b;
   for(int i = 0; i < nobs; i++) {
 		int j = province(i);
 		prob(i) = baselogis(t(i),
 												// deltar includes province-specific REs
 												loc(j),
-												// log_sd is a vector, but we only want the first element!
-												deltar + exp(log_sd(0))*b(j),
+				    deltar_vec(j),
 												lodrop, logain);
 		// FIXME: revert to binomial when theta → ∞ (i.e. over a threshold) ?
 		if (notFinite(log_theta)) {

@@ -20,7 +20,7 @@ ss <- (s0
   %>% mutate(province = factor(prov))
   %>% group_by(province)
     %>% transmute(province,
-                  t = time - min(time),
+                  t = time,
                   dropouts = omicron,
                   total_positives = omicron + delta)
   %>% ungroup()

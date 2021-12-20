@@ -1,5 +1,5 @@
 library(shellpipes)
-## rpcall("tmb_diagnose.Rout tmb_diagnose.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda")
+rpcall("tmb_diagnose.Rout tmb_diagnose.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda")
 
 library(broom.mixed)
 library(dplyr)
@@ -16,7 +16,7 @@ startGraphics()
 
 ## includes fits, sim data (ss), file name/type info
 loadEnvironments()
-set_trace(tmb_betabinom)
+set_trace(tmb_betabinom, FALSE)
 tmb_betabinom$fn()
 coef(tmb_betabinom)
 
@@ -38,9 +38,10 @@ pp <- profile(tmb_betabinom_mle2, which = "log_sd")
 
 ## profile 'by hand'
 prof_betabinom_args <- betabinom_args
-do_prof <- function(log_sd_val) {
-    prof_betabinom_args$map <- list(log_sd = factor(NA))
-    prof_betabinom_args$parameters$lodrop <- log_sd_val
+do_prof <- function(value, param = "log_sd") {
+    prof_betabinom_args$map <- c(prof_betabinom_args$map,
+                                 setNames(list(factor(NA)), param))
+    prof_betabinom_args$parameters[[param]] <- value
     tmb_prof <- do.call(MakeADFun, prof_betabinom_args)
     class(tmb_prof) <- "TMB"
     ## FIXME: continuation method, up/down?
@@ -50,17 +51,38 @@ do_prof <- function(log_sd_val) {
                      optim(par = par, fn = fn, gr = gr, method = "BFGS"
                          , control = list(trace = 10))
                      )
-    r <- c(log_sd = log_sd_val, coef(tmb_prof), NLL = -1*logLik(tmb_prof))
+    r <- c(junk = value, coef(tmb_prof), NLL = -1*logLik(tmb_prof))
+    names(r)[1] <- param
     data.frame(rbind(r))
 }
 
-log_sd_vec <- seq(-10, 0, by = 0.1)
+## tt <- TMB::tmbprofile(tmb_betabinom, name = "log_sd",
+##                      parm.range = c(-10, 1))
+
+log_sd_vec <- seq(-10, -1, by = 0.1)
 pp <- purrr::map_dfr(log_sd_vec, do_prof)
-pp2 <- (fix_province_names(pp)
+pp2 <- (fix_province_names(pp))
+rmse <- function(x,y) {
+    sqrt(mean((y-x)/x)^2)
+}
+mm2 <- as.matrix(pp2)
+r <- sapply(1:(nrow(pp2)-1),
+            function(i) rmse(mm2[i,], mm2[i+1,]))
+plot(r, log="y")
+## some bad values. What's the easiest/best way to detect & diagnose?
+## threshold depends on spacing of log_sd_vec
+bad <- which(r>0.05)
+rmbad <- function(x) { x[bad] <- NA; return(x) }
+plot(pp2$deltar, type="b", log="y")
+plot(rmbad(pp2$deltar), type="b")
+plot(rmbad(pp2$NLL), type ="b")
+
+pp3 <- (pp2
+    |> mutate(across(-log_sd, rmbad))
+    |> mutate(across(NLL, ~ . - min(., na.rm = TRUE)))
+    |> mutate(log10_NLL = log10(NLL))
     |> tidyr::pivot_longer(-log_sd)
 )
-ggplot(pp2, aes(log_sd, value)) + geom_point() + geom_line() + facet_wrap(~name, scale = "free")
-
-
+ggplot(pp3, aes(log_sd, value)) + geom_point() + geom_line() + facet_wrap(~name, scale = "free")
 saveEnvironment()
 dev.off()

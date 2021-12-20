@@ -91,5 +91,24 @@ logLik.TMB <- function(x) {
     return(-1*x$fn())
 }
 
-saveEnvironment()
 
+## https://stackoverflow.com/questions/9965577/r-copy-move-one-environment-to-another
+cloneEnv <- function(envir, deep = TRUE) {
+  if(deep) {
+    clone <- list2env(rapply(as.list(envir, all.names = TRUE), cloneEnv, classes = "environment", how = "replace"), parent = parent.env(envir))
+  } else {
+    clone <- list2env(as.list(envir, all.names = TRUE), parent = parent.env(envir))
+  }
+  attributes(clone) <- attributes(envir)
+  return(clone)
+}
+copyEnv <- function(e1, debug = FALSE) {
+    e2 <- new.env()
+    objs <- setdiff(ls(e1, all.names=TRUE), "...")
+    for (n in objs) {
+        if (debug) cat(n, "\n")
+        assign(n, get(n, e1), e2)
+    }
+    return(e2)
+}
+saveEnvironment()
