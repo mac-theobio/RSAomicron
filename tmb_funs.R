@@ -48,40 +48,13 @@ coef.TMB <- function(x, random = FALSE) {
     }
     return(r)
 }
-
-## FIXME: allow to work harder if non-pos-def?
-## from ?jacobian: ‘method.args=list(eps=1e-4, d=0.0001,
-##   zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2,
-##      show.details=FALSE)’ is set as the default.
-## from ?grad:
-## ‘d’ gives the
-##      fraction of ‘x’ to use for the initial numerical approximation.
-##      The default means the initial approximation uses ‘0.0001 * x’.
-##      ‘eps’ is used instead of ‘d’ for elements of ‘x’ which are zero
-##      (absolute value less than zero.tol).  ‘zero.tol’ tolerance used
-##      for deciding which elements of ‘x’ are zero.  ‘r’ gives the number
-##      of Richardson improvement iterations (repetitions with successly
-##      smaller ‘d’. The default ‘4’ general provides good results, but
-##      this can be increased to ‘6’ for improved accuracy at the cost of
-##      more evaluations.  ‘v’ gives the reduction factor.  ‘show.details’
-##      is a logical indicating if detailed calculations should be shown.
-default.method.args <- list(eps=1e-4, d=0.0001,
-                            zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2,
-                            show.details=FALSE)
-vcov.TMB <- function(x, method.args = NULL) {
-    m.args <- default.method.args
-    if (length(method.args) > 0) {
-        for (n in names(method.args)) {
-            m.args[[n]] <- method.args[[n]]
-        }
-    }
+vcov.TMB <- function(x) {
     if (!require("numDeriv")) stop('need numDeriv package for TMB vcov')
     H <- numDeriv::jacobian(func = x$gr,
-                            x = coef(x),
-                            method.args = m.args)
+                            x = fixef.TMB(x))
     ## fixme: robustify?
     V <- solve(H)
-    nn <- names(coef(x))
+    nn <- names(fixef.TMB(x))
     dimnames(V) <- list(nn,nn)
     return(V)
 }
@@ -91,24 +64,5 @@ logLik.TMB <- function(x) {
     return(-1*x$fn())
 }
 
-
-## https://stackoverflow.com/questions/9965577/r-copy-move-one-environment-to-another
-cloneEnv <- function(envir, deep = TRUE) {
-  if(deep) {
-    clone <- list2env(rapply(as.list(envir, all.names = TRUE), cloneEnv, classes = "environment", how = "replace"), parent = parent.env(envir))
-  } else {
-    clone <- list2env(as.list(envir, all.names = TRUE), parent = parent.env(envir))
-  }
-  attributes(clone) <- attributes(envir)
-  return(clone)
-}
-copyEnv <- function(e1, debug = FALSE) {
-    e2 <- new.env()
-    objs <- setdiff(ls(e1, all.names=TRUE), "...")
-    for (n in objs) {
-        if (debug) cat(n, "\n")
-        assign(n, get(n, e1), e2)
-    }
-    return(e2)
-}
 saveEnvironment()
+

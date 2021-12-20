@@ -161,8 +161,6 @@ tmb_ci.Rout: tmb_ci.R tmb_fit.rda
 
 tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
 
-
-
 ######################################################################
 
 ## More experimental branching stuff
@@ -170,7 +168,6 @@ tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
 ## Accumulate parameters
 null.Rout: parms.R
 	$(pipeR)
-
 
 ######################################################################
 
