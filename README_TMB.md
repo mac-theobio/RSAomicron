@@ -1,11 +1,13 @@
 ## Notes on TMB implementation
 
 - `logistic_fit_fixedloc.cpp`: basic fitting machinery
+     - name change to `sg.cpp` ?
 - `logistic_fit.h`: utilities (dbetabinom parameterizations, logistic-with-error function, etc.)
 - `tmb_funs.R`: utilities (TMB methods, general pipeline utils)
 - `tmb_fit.R`: construct TMB models, parameters, fit (currently only to fake data)
 - `tmb_eval.R`: basic downstream machinery: predictions, some CIs, etc.
 - `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow!
+- `gen_funs.R`: more utility functions (not TMB-specific)
 
 ## Current status
 
@@ -19,11 +21,15 @@
 ### high priority
 
 - explore reasons for difficulty in estimating log-sd. Profile; regularize/prior?
+- (profile looks like log-sd should be going to zero. Is this just where start running into numerical trouble?)
+- what's a reasonable prior for delta-r? if we put it on the log-scale (seems reasonable), then a range of (say) 1% to 30% difference across provinces seems reasonable ... ?
 - trouble-shoot `tmb_CI.R`
+- set up `sr.cpp` (i.e., add reinfection to data and model)
 
 ### cosmetic/cleanup
 
 - move province-name-fixing machinery (i.e. disambiguating `loc` parameters) upstream
+- report delta-r at the provincial level
 
 ### medium
 
