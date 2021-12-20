@@ -6,11 +6,11 @@ template<class Type>
 Type objective_function<Type>::operator() ()
 {
 	
-  DATA_FACTOR(province);
-  DATA_IVECTOR(t);                // time
+  DATA_FACTOR(prov);
+  DATA_IVECTOR(time);             // time
   DATA_INTEGER(nprov);            // num provinces: should compute from data?
-  DATA_IVECTOR(dropouts);         // number of recorded SGTF dropouts
-  DATA_IVECTOR(total_positives);  // number of confirmed cases
+  DATA_IVECTOR(omicron);         // number of recorded SGTF dropouts
+  DATA_IVECTOR(tot);  // number of confirmed cases
 	DATA_INTEGER(debug);            // debugging flag
 	
   PARAMETER_VECTOR(loc);          // midpoint of takeover curve (fixed effect)
@@ -22,7 +22,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(log_sd);              // SDs of {loc, deltar} REs
   // PARAMETER_VECTOR(corr);         // correlation among SDs (unused now since only 1 RE per block)
 
-  int nobs = dropouts.size();
+  int nobs = omicron.size();
   // int blocksize = 2; // two parameters per province (unused)
 	Type nll;
   Type res = 0;
@@ -58,8 +58,8 @@ Type objective_function<Type>::operator() ()
 
 	vector<Type> deltar_vec = deltar + exp(log_sd)*b;
   for(int i = 0; i < nobs; i++) {
-		int j = province(i);
-		prob(i) = baselogis(t(i),
+		int j = prov(i);
+		prob(i) = baselogis(time(i),
 												// deltar includes province-specific REs
 												loc(j),
 				    deltar_vec(j),
@@ -67,11 +67,11 @@ Type objective_function<Type>::operator() ()
 		// FIXME: revert to binomial when theta → ∞ (i.e. over a threshold) ?
 		if (notFinite(log_theta)) {
 			// binomial (log_theta must use `map=` in MakeADFun ...
-			nll = -1*dbinom(Type(dropouts(i)), Type(total_positives(i)), prob(i), true);
+			nll = -1*dbinom(Type(omicron(i)), Type(tot(i)), prob(i), true);
 		} else {
 			// beta-binomial
 
-			nll = -1*dbetabinom_theta(Type(dropouts(i)), prob(i), exp(log_theta), Type(total_positives(i)), true);
+			nll = -1*dbetabinom_theta(Type(omicron(i)), prob(i), exp(log_theta), Type(tot(i)), true);
 		}
 		// copied from glmmTMB: not yet ...
 		// s3 = logit_inverse_linkfun(eta(i), link); // logit(p)
@@ -84,8 +84,8 @@ Type objective_function<Type>::operator() ()
 
 		res += nll;
 		if (debug > 5) {
-			std::cout << i << " " << prob(i) << " " << dropouts(i) << " " <<
-				total_positives(i) << " " << nll << " " << res << "\n";
+			std::cout << i << " " << prob(i) << " " << omicron(i) << " " <<
+				tot(i) << " " << nll << " " << res << "\n";
 		}
   }
 

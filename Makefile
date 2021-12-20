@@ -153,7 +153,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic_fit_fixedloc.cpp logistic_fit.h tmb_funs.rda
 
-tmb_eval.Rout: tmb_eval.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
+tmb_eval.Rout: tmb_eval.R tmb_fit.rds tmb_funs.rda
 
 tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
 
