@@ -163,6 +163,11 @@ tmb_fit <- function(data,
 				data[["reinf"]] <- 1
 		}
 
+    if (!reinf_effect) {
+				## fix reinf to starting value (== 0 by default)
+				map <- c(map, list(beta_reinf = factor(NA)))
+		}
+
 		tmb_data <- c(data[data_vars],
 									list(nprov = np, debug = debug_level))
 		if (!is.null(priors)) {
@@ -187,11 +192,6 @@ tmb_fit <- function(data,
 											 map = c(map, list(log_theta = factor(NA))),
 											 silent = TRUE)
 
-		if (!reinf_effect) {
-				## fix reinf to starting value (== 0 by default)
-				map <- c(map, list(beta_reinf = factor(NA)))
-		}
-		
 		if (two_stage) {
 				tmb_binom <- do.call(MakeADFun, binom_args)
 				r0 <- tmb_binom$fn()
