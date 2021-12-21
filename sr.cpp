@@ -14,12 +14,12 @@ Type objective_function<Type>::operator() ()
 	DATA_INTEGER(debug);            // debugging flag
 	
   PARAMETER_VECTOR(loc);          // midpoint of takeover curve (fixed effect)
-  PARAMETER(deltar);              // takeover rate
+  PARAMETER(log_deltar);              // takeover rate
   PARAMETER_VECTOR(b);            // random effects vector: {deltar} x nprov
   PARAMETER(lodrop);              // log-odds of false negative for SGTF (universal)
   PARAMETER(logain);              // log-odds of false positive for SGTF (universal)
   PARAMETER(log_theta);           // log of theta (Beta dispersion parameter)
-  PARAMETER(log_sd);              // SDs of {loc, deltar} REs
+  PARAMETER(logsd_logdeltar);              // SDs of {loc, deltar} REs
   // PARAMETER_VECTOR(corr);         // correlation among SDs (unused now since only 1 RE per block)
 
   int nobs = omicron.size();
@@ -56,7 +56,8 @@ Type objective_function<Type>::operator() ()
 	vector<Type> prob(nobs);
 	Type s1, s2, s3;
 
-	vector<Type> deltar_vec = deltar + exp(log_sd)*b;
+	vector<Type> log_deltar_vec = log_deltar + exp(logsd_logdeltar)*b;
+	vector<Type> deltar_vec = exp(log_deltar_vec);
   for(int i = 0; i < nobs; i++) {
 		int j = prov(i);
 		prob(i) = baselogis(time(i),
@@ -92,11 +93,13 @@ Type objective_function<Type>::operator() ()
 
 	
 	REPORT(prob);
+	REPORT(log_deltar_vec);
 	// sdreport() will actually have both value and sd
 	// report log-odds of prob so we can get (Wald) CIs on the logit scale
 	vector<Type> loprob = logit(prob);
 
 	ADREPORT(loprob);
+	ADREPORT(log_deltar_vec);
 
 	if (debug > 1) std::cout << res << "\n";
 	

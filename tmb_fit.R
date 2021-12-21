@@ -30,24 +30,3 @@ tt <- tmb_fit(s0)
 ##                          corr = rep(0, nRE*(nRE-1)/2)))
 
 rdsSave(tt)
-
-if (FALSE) {
-  library(tmbstan)
-  tt <- tmbstan(tmb_betabinom)
-
-  tmb_pars_bigsd <- tmb_pars
-  tmb_pars_bigsd$log_sd[1] <- 10
-
-  tmb1 <- MakeADFun(tmb_data,
-                    tmb_pars_bigsd,
-                    random = c("b"),
-                    map = list(logain = factor(NA), log_sd = factor(c(NA, 1))),
-                    silent = TRUE)
-  tmb1$fn()
-
-  system.time(
-      tmb1_opt <- with(tmb1, optim(par = par, fn = fn, gr = gr, method = "BFGS",
-                                   control = list(trace = 10))
-                       )
-  )
-}

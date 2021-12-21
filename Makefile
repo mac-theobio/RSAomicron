@@ -151,7 +151,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
 
-tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic_fit_fixedloc.cpp logistic_fit.h tmb_funs.rda
+tmb_fit.Rout: tmb_fit.R btfake.sgts.rds sr.cpp logistic_fit.h tmb_funs.rda
 
 tmb_eval.Rout: tmb_eval.R tmb_fit.rds tmb_funs.rda
 

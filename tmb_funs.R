@@ -22,7 +22,7 @@ get_names <- function(x) {
 }
 
 ## disambiguate locations
-fix_province_names <- function(x, names = get_names(ss$province)) {
+fix_prov_names <- function(x, names = get_names(ss$prov)) {
     if (!is.null(dim(x))) {
         colnames(x)[grepl("^loc", colnames(x))] <- paste0("loc.", names)
     } else {
@@ -51,13 +51,14 @@ coef.TMB <- function(x, random = FALSE) {
 vcov.TMB <- function(x) {
     if (!require("numDeriv")) stop('need numDeriv package for TMB vcov')
     H <- numDeriv::jacobian(func = x$gr,
-                            x = fixef.TMB(x))
+                            x = coef(x))
     ## fixme: robustify?
     V <- solve(H)
-    nn <- names(fixef.TMB(x))
+    nn <- names(coef(x))
     dimnames(V) <- list(nn,nn)
     return(V)
 }
+
 logLik.TMB <- function(x) {
     ## FIXME: include df? (length(coef(x)))?
     ## is x$fn() safe (uses last.par) or do we need last.par.best ?
@@ -98,10 +99,13 @@ copyEnv <- function(e1, debug = FALSE) {
 tmb_fit <- function(data,
                     two_stage = TRUE,
                     fixed_loc = TRUE,
-                    start = list(deltar = 0.1, lodrop = -4, logain = -7),
+                    start = list(log_deltar = log(0.1),
+                                 lodrop = -4, logain = -7),
+                    upper = list(log_theta = 20),
+                    lower = list(logsd_logdeltar = -5),
                     map = list(),
                     debug_level = 0,
-                    tmb_file = "logistic_fit_fixedloc")
+                    tmb_file = "sr")
 {
     ## FIXME: figure out how to do this externally ...
     TMB::compile(paste0(tmb_file, ".cpp"))
@@ -120,7 +124,7 @@ tmb_fit <- function(data,
     tmb_pars_binom <- c(tmb_pars_binom,
                         list(loc = rep(loc_start, np),
                              b = rep(0, nRE * np),
-                             log_sd = rep(1, nRE)))
+                             logsd_logdeltar = rep(-1, nRE)))
     binom_args <- list(data = tmb_data,
                        parameters = tmb_pars_binom,
                        random = c("b"),
@@ -153,13 +157,26 @@ tmb_fit <- function(data,
     if (two_stage) betabinom_args$parameters <- splitfun(binom_args$parameters, tmb_binom_opt$par)
     betabinom_args$parameters$log_theta <- 0
     tmb_betabinom <- do.call(MakeADFun, betabinom_args)
-    uvec <- tmb_betabinom$par
-    uvec[] <- Inf ## set all upper bounds to Inf (default/no bound)
-    uvec[["log_theta"]] <- 20
+    if (!is.null(upper)) {
+        uvec <- tmb_betabinom$par
+        uvec[] <- Inf ## set all upper bounds to Inf (default/no bound)
+        for (nm in names(upper)) {
+            uvec[[nm]] <- upper[[nm]]
+        }
+    }
+    if (!is.null(lower)) {
+        lvec <- tmb_betabinom$par
+        lvec[] <- -Inf
+        for (nm in names(lower)) {
+            lvec[[nm]] <- lower[[nm]]
+        }
+    }
+        
     tmb_betabinom_opt <- with(tmb_betabinom,
                               optim(par = par, fn = fn, gr = gr, method = "L-BFGS-B",
-                                    control = list(trace = 1),
-                                    upper = uvec)
+                                    control = list(), ## trace = 1),
+                                    upper = uvec,
+                                    lower = lvec)
                               )
     return(mkTMB(tmb_betabinom, tmb_file, get_names(data$prov)))
 }
@@ -168,13 +185,21 @@ tmb_fit <- function(data,
 get_data <- function(x) {
     dd <- x$env$data
     L <- lengths(dd)
-    return(as.data.frame(dd[L == max(L)]))
+    dd <- (dd[L == max(L)]
+        %>% as.data.frame()  ## not tibble (collapsing list)
+        %>% mutate(across(prov, factor, labels = get_prov_names(fit)))
+        %>% as_tibble()
+    )
+    return(dd)
 }
+
 
 ## add class and file attribute
 mkTMB <- function(x, tmb_file, prov_names) {
     attr(x, "tmb_file") <- tmb_file
     attr(x, "prov_names") <- prov_names
+    x$env$last.par.best <- fix_prov_names(x$env$last.par.best,
+                                              prov_names)
     class(x) <- "TMB"
     return(x)
 }
@@ -185,6 +210,58 @@ get_tmb_file <- function(x) {
 
 get_prov_names <- function(x) {
     attr(x, "prov_names")
+}
+
+## this is specific to SR fits, not generic TMB machinery
+## deep-copy TMB object, then modify data within it appropriately,
+## call TMB::sdreport() on the modified object
+## by default, expands time x province list and generates
+## predicted values (and Wald CIs on the log scale)
+predict.srfit <- function(fit, newdata = NULL) {
+    e2 <- copyEnv(environment(fit$fn))
+    pred_bb <- fit
+    environment(pred_bb$fn) <- environment(pred_bb$gr) <-
+        environment(pred_bb$report) <- pred_bb$env <- e2
+    if (is.null(newdata)) {
+        newdata <- with(get_data(fit),
+                         expand.grid(prov = unique(prov),
+                                     time = unique(time)))
+    }
+    n <- nrow(newdata)
+    dd <- fit$env$data ## all data
+    for (nm in names(dd)) {
+        if (nm %in% names(newdata)) {
+            dd[[nm]] <- newdata[[nm]]
+        } else {
+            L <- length(dd[[nm]])
+            if (L > 1 && L < nrow(newdata)) {
+                dd[[nm]] <- rep(NA_real_, nrow(newdata))
+            }
+        }
+    }
+    ## set to re-sanitize
+    attr(dd, "check.passed") <- FALSE
+    e2$data <- dd
+    rr <- sdreport_split(pred_bb)
+    ss2 <- (newdata
+        %>% as_tibble()
+        %>% mutate(
+                prov = factor(prov,
+                              labels = get_prov_names(fit)),
+            pred = plogis(rr$value$loprob),
+            pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
+            pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
+    )
+    return(ss2)
+}
+
+## compute sdreport and split by name
+sdreport_split <- function(fit) {
+    rr <- sdreport(fit)
+    nm <- names(rr$value)
+    rr$value <- split(rr$value, nm)
+    rr$sd <- split(rr$sd, nm)
+    return(rr)
 }
 
 saveEnvironment()
