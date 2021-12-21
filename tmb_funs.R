@@ -175,6 +175,7 @@ tmb_fit <- function(data,
     if (two_stage) betabinom_args$parameters <- splitfun(binom_args$parameters, tmb_binom_opt$par)
     betabinom_args$parameters$log_theta <- 0
     tmb_betabinom <- do.call(MakeADFun, betabinom_args)
+    uvec <- Inf ## default: optim will replicate as necessary
     if (!is.null(upper)) {
         uvec <- tmb_betabinom$par
         uvec[] <- Inf ## set all upper bounds to Inf (default/no bound)
@@ -182,6 +183,7 @@ tmb_fit <- function(data,
             uvec[[nm]] <- upper[[nm]]
         }
     }
+    lvec <- -Inf
     if (!is.null(lower)) {
         lvec <- tmb_betabinom$par
         lvec[] <- -Inf

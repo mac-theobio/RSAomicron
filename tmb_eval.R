@@ -22,6 +22,7 @@ coef(fit)
 rr <- sdreport_split(fit)
 ss <- get_data(fit)
 
+## simple predictions
 ss <- (ss
     %>% mutate(pred = plogis(rr$value$loprob),
                pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
@@ -45,6 +46,9 @@ print(gg1)
 
 ## estimate, standard errors, Wald CIs
 t1 <- tidy(fit, conf.int = TRUE)
+
+## plot
+
 
 ## better CIs
 if (FALSE) {

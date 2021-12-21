@@ -8,39 +8,45 @@
 - `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow, not working yet!
 - `gen_funs.R`: more utility functions (not TMB-specific)
 
+## Description
+
+* Fits a likelihood model to testing data
+* Parameters/priors: 
+   - `loc`: midpoint of omicron takeover curve (per-province fixed effect)
+   - `log_deltar`: selective advantage of omicron (base + province-level RE; log SD gives a prior range of SD (log-advantage) from 0.01 to 0.3, i.e. a 1% to 30% variation in deltar across provinces)
+   - `logsd_logdeltar`: log of cross-province SD of log_deltar
+   - `prior_logsd_logdeltar`: vector of mean, SD of prior
+   - `lodrop`: log-odds of false negative SGTF (i.e. omicron w/o SGTF)
+   - `logain`: log-odds of false positive SGTF (i.e. non-omicron w/ SGTF)
+   - `log_theta`: log of size parameter for beta-binomial sampling error
+
 ## Current status
 
-- fits current fake (`btfake.sgts.rds`) data OK (both `logain` and `lodrop` estimates are small but reasonable, around -4), with some issues:
-   - `log_sd` of log-delta-r is small: need to set prior/bound
+- fits current fake (`btfake.sgts.rds`) data OK.
 
 ## Issues/to-do
 
 ### high priority
 
-- explore reasons for difficulty in estimating log-sd. Profile; regularize/prior?
-- (profile looks like log-sd should be going to zero. Is this just where start running into numerical trouble?)
-- what's a reasonable prior for delta-r? if we put it on the log-scale (seems reasonable), then a range of (say) 1% to 30% difference across provinces seems reasonable ... ?
+- explore results more.
 - trouble-shoot `tmb_CI.R`
 - set up `sr.cpp` (i.e., add reinfection to data and model)
 
 ### cosmetic/cleanup
 
-- move province-name-fixing machinery (i.e. disambiguating `loc` parameters) upstream
 - report delta-r at the provincial level
 
 ### medium
 
+- write (unit) tests!
 - machinery for automatic binom/beta-binom switching/robust fitting
 - `SIMULATE` methods
 - switches for fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
     - making loc a fixed effect seemed necessary to get workable answers: can we relax this?
 - adjustable beta-binomial parameterizations? Do we really need this?
 - log-scale/robust machinery
-- work up a similar thing for the re-infection data
 - alternatively try using standard mixed model (also good for comparison of effects of allowing for drop/gain)
-- also had to put an upper bound on beta-binom precision parameter
 - try on an *ensemble* of fake data??
-- set up priors/flag for priors?
 - get `tmbstan` working (and/or translate to Stan??)
 
 ### low

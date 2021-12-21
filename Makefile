@@ -157,7 +157,7 @@ tmb_eval.Rout: tmb_eval.R tmb_fit.rds tmb_funs.rda
 
 tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
 
-tmb_ci.Rout: tmb_ci.R tmb_fit.rda
+tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda
 
 tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
 

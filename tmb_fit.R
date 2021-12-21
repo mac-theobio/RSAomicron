@@ -1,4 +1,5 @@
 library(shellpipes)
+rpcall("tmb_fit.Rout tmb_fit.R btfake.sgts.rds sr.cpp logistic_fit.h tmb_funs.rda")
 library(TMB)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
@@ -21,12 +22,8 @@ gg0 <- (ggplot(s0, aes(time, omicron/tot))
 print(gg0)
 
 tt <- tmb_fit(s0)
-## pars for random-loc model
-## nRE <- 2 ## number of REs per province {deltar and loc}
-## tmb_pars_binom <- c(tmb_pars_binom,
-##                     list(loc = 20,
-##                          b = rep(0, nRE * np),
-##                          log_sd = rep(1, nRE),
-##                          corr = rep(0, nRE*(nRE-1)/2)))
 
+if (FALSE) {
+    tmb_fit(s0, lower = NULL, debug_level = 4)
+}
 rdsSave(tt)

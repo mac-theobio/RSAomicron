@@ -97,9 +97,23 @@ Type objective_function<Type>::operator() ()
 
 
 	// priors
+	Type nlprior = 0;
+
 	if (!notFinite(prior_logsd_logdeltar(0))) {
-		nll -= dnorm(logsd_logdeltar, prior_logsd_logdeltar(0),
-								 prior_logsd_logdeltar(1), true);
+		nlprior = -1*dnorm(logsd_logdeltar,
+											 prior_logsd_logdeltar(0),
+											 prior_logsd_logdeltar(1),
+											 true);
+	}
+
+	res += nlprior;
+	
+	if (debug > 3) {
+		std::cout << "nlprior " << nlprior << " "
+							<< logsd_logdeltar << " "
+							<< prior_logsd_logdeltar(0) << " "
+							<< prior_logsd_logdeltar(1) << " "
+							<< "\n";
 	}
 	
 	REPORT(prob);
