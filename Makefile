@@ -159,7 +159,7 @@ tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic.so tmb_funs.rda
 
 tmb_eval.Rout: tmb_eval.R tmb_fit.rds logistic.so tmb_funs.rda
 
-tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
+tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgs.rds tmb_funs.rda
 
 tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda
 
@@ -195,6 +195,14 @@ impmakeR += sgtmb
 ## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb.R tmb_funs.R
 %.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda logistic.so
 	$(pipeR)
+
+%.srtmb.Rout: sgtmb.R %.srts.props.rds logistic.so tmb_funs.rda
+	$(pipeR)
+
+%.srtmb_eval.Rout: sgtmb_eval.R %.srtmb.rds logistic.so tmb_funs.rda
+	$(pipeR)
+
+
 
 ## get ensemble (MVN sampling distribution)
 ## 

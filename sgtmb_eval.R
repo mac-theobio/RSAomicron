@@ -1,11 +1,18 @@
 library(shellpipes)
 ## rpcall("btfake.sgtmb_eval.Rout sgtmb_eval.R btfake.sgtmb.rds tmb_funs.rda logistic.so")
+rpcall("btfake.srtmb_eval.Rout sgtmb_eval.R btfake.srtmb.rds logistic.so tmb_funs.rda")
 
 library(broom.mixed)
 library(dplyr)
-library(ggplot2); theme_set(theme_bw())
+library(ggplot2); theme_set(theme_bw() + theme(panel.spacing = grid::unit(0, "lines")))
 library(TMB) ## still need it to operate on TMB objects
 
+pt_alpha <- 0.5
+reinf_colours <- c("black", "red")
+## BMB: I know JD likes this, but it makes the size range of the points too hard to handle ...
+if (FALSE) {
+    scale_size <- scale_size_area
+}
 
 startGraphics()
 
@@ -19,32 +26,86 @@ summary(fit$report()$prob)
 coef(fit)
 
 rr <- sdreport_split(fit)
-ss <- get_data(fit)
 
-## simple predictions
-ss <- (ss
+
+ss0 <- get_data(fit)
+if (uses_reinf(fit)) {
+    ss0 <- ss0 %>% mutate(across(reinf, factor))
+}
+
+## simple predictions (no filling-in of missing time values)
+ss1 <- (ss0
     %>% mutate(pred = plogis(rr$value$loprob),
                pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
                pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
 )
 
+## extend data for reinfection plots
+
+## base plot
+gg0 <- (ggplot(ss1, aes(time))
+    + geom_point(aes(y=omicron/tot, size = tot), alpha = pt_alpha)
+    + geom_line(aes(y=pred))
+    + geom_ribbon(aes(ymin = pred_lwr, ymax = pred_upr),
+                  colour = NA, alpha = 0.2)
+    + facet_wrap(~prov)
+    + scale_size()
+    + ggtitle("simple prediction (no time-interpolation)")
+)
+
+## extend for reinfection
+if (uses_reinf(fit)) {
+    gg0 <- (gg0
+        + aes(shape = reinf, linetype = reinf, colour = reinf)
+        + scale_colour_manual(values = reinf_colours)
+    )
+}
+
+print(gg0)
+
 
 ## more sophisticated prediction
 predvals <- predict(fit)
+if (uses_reinf(fit)) {
+    predvals <- predvals %>% mutate(across(reinf, factor))
+}
 
-gg1 <- (ggplot(ss, aes(time, colour = prov))
-    + geom_point(aes(y=omicron/tot, size = tot))
+## FIXME: DRY ...
+gg1 <- (ggplot(ss0, aes(time))
+    + geom_point(aes(y=omicron/tot, size = tot), alpha = pt_alpha)
     + geom_line(data = predvals, aes(y=pred))
     + geom_ribbon(data = predvals,
-                  aes(fill = prov, ymin = pred_lwr, ymax = pred_upr),
+                  aes(ymin = pred_lwr, ymax = pred_upr),
                   colour = NA, alpha = 0.2)
-  + facet_wrap(~prov)
+    + scale_size()
+    + facet_wrap(~prov)
 )
+if (uses_reinf(fit)) {
+    gg1 <- (gg1
+        + aes(shape = reinf, linetype = reinf, colour = reinf, group = reinf)
+        + scale_colour_manual(values = reinf_colours)
+    )
+}
+
 print(gg1)
 
 
 ## estimate, standard errors, Wald CIs
-print(tidy(fit, conf.int = TRUE))
+print(tt <- tidy(fit, conf.int = TRUE))
+
+
+tt2 <- (tt
+    %>% filter(!grepl("loc", term))
+    %>% mutate(across(term, forcats::fct_inorder))
+    %>% select(term, estimate, lwr = conf.low, upr = conf.high)
+)
+
+## these don't necessarily all make sense together, but at least
+## they're all in log or log-odds units
+coefplot <- (ggplot(tt2, aes(x = estimate, y = term))
+    + geom_pointrange(aes(xmin = lwr, xmax = upr))
+)
+print(coefplot)
 
 ## plot 
 v <- rr$value$log_deltar_vec

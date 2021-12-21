@@ -274,20 +274,26 @@ get_prov_names <- function(x) {
 		attr(x, "prov_names")
 }
 
-## this is specific to logistic fits, not generic TMB machinery
-## deep-copy TMB object, then modify data within it appropriately,
-## call TMB::sdreport() on the modified object
-## by default, expands time x province list and generates
-## predicted values (and Wald CIs on the log scale)
-predict.logistfit <- function(fit, newdata = NULL) {
+##' this is specific to logistic fits, not generic TMB machinery
+##' deep-copy TMB object, then modify data within it appropriately,
+##' call TMB::sdreport() on the modified object
+##' by default, expands time x province list (and reinf 0/1?) and generates
+##' predicted values (and Wald CIs on the log scale)
+##' @param fit a fitted model
+##' @param newdata data frame for prediction (should include province, time, reinf(?)
+##' @param include_reinf expand prediction frame over reinfection status?
+predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fit)) {
 		e2 <- copyEnv(environment(fit$fn))
 		pred_bb <- fit
 		environment(pred_bb$fn) <- environment(pred_bb$gr) <-
 				environment(pred_bb$report) <- pred_bb$env <- e2
 		if (is.null(newdata)) {
-				newdata <- with(get_data(fit),
-												expand.grid(prov = unique(prov),
-																		time = unique(time)))
+        dd0 <- get_data(fit)
+        args <- with(dd0, list(prov = unique(prov), time = unique(time)))
+        if (uses_reinf(fit)) {
+            args <- c(args, list(reinf = 0:1))
+        }
+				newdata <- do.call(expand.grid, args)
 		}
 		n <- nrow(newdata)
 		dd <- fit$env$data ## all data
@@ -298,7 +304,8 @@ predict.logistfit <- function(fit, newdata = NULL) {
 						L <- length(dd[[nm]])
 						if (L > 1 && L < nrow(newdata)) {
                 if (nm == "reinf") {
-                    warning("setting reinf to 0 (STUB)")
+                    ## model uses reinf, but include_reinf not specified
+                    if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")
                     dd[[nm]] <- rep(0, nrow(newdata))
                 } else {
                     ## other variables aren't used (we think)
@@ -330,6 +337,10 @@ sdreport_split <- function(fit) {
 		rr$value <- split(rr$value, nm)
 		rr$sd <- split(rr$sd, nm)
 		return(rr)
+}
+
+uses_reinf <- function(fit) {
+    !"beta_reinf" %in% names(fit$env$map)
 }
 
 saveEnvironment()
