@@ -1,5 +1,5 @@
 library(shellpipes)
-rpcall("tmb_eval.Rout tmb_eval.R tmb_fit.rds tmb_funs.rda")
+rpcall("tmb_eval.Rout tmb_eval.R tmb_fit.rds logistic.so tmb_funs.rda")
 
 library(broom.mixed)
 library(dplyr)
@@ -8,11 +8,11 @@ library(TMB) ## still need it to operate on TMB objects
 ## need to reload the dynamic library as well
 
 startGraphics()
+soLoad()
 
 ## includes fits, sim data (ss), file name/type info
 fit <- rdsRead()
 loadEnvironments()
-dyn.load(dynlib(get_tmb_file(fit)))
 
 ## predicted probabilities:
 summary(fit$report()$prob)
@@ -30,7 +30,7 @@ ss <- (ss
 
 
 ## more sophisticated prediction
-predvals <- predict.srfit(fit)
+predvals <- predict(fit)
 
 gg1 <- (ggplot(ss, aes(time, colour = prov))
     + geom_point(aes(y=omicron/tot, size = tot))
@@ -70,5 +70,4 @@ pop_vals <- MASS::mvrnorm(1000,
                           mu = coef(fit),
                           Sigma = vcov(fit))
                           
-
-dev.off() ## do I need this, or is there some other shellpipe-y way?
+warnings()

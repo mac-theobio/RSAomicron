@@ -1,17 +1,18 @@
 library(shellpipes)
+## rpcall("btfake.sgtmb_eval.Rout sgtmb_eval.R btfake.sgtmb.rds tmb_funs.rda logistic.so")
 
 library(broom.mixed)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 library(TMB) ## still need it to operate on TMB objects
-## need to reload the dynamic library as well
+
 
 startGraphics()
 
 ## includes fits, sim data (ss), file name/type info
 fit <- rdsRead()
 loadEnvironments()
-dyn.load(dynlib(get_tmb_file(fit)))
+soLoad()  ## still need to reload dynamic library
 
 ## predicted probabilities:
 summary(fit$report()$prob)
@@ -29,7 +30,7 @@ ss <- (ss
 
 
 ## more sophisticated prediction
-predvals <- predict.srfit(fit)
+predvals <- predict(fit)
 
 gg1 <- (ggplot(ss, aes(time, colour = prov))
     + geom_point(aes(y=omicron/tot, size = tot))

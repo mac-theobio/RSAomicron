@@ -151,9 +151,13 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
 
-tmb_fit.Rout: tmb_fit.R btfake.sgts.rds sg.cpp logistic_fit.h tmb_funs.rda
+tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic.so tmb_funs.rda
 
-tmb_eval.Rout: tmb_eval.R tmb_fit.rds tmb_funs.rda
+%.sgrtmb.Rout: sgtmb.R %.sgts.props.rds logistic.so tmb_funs.rda
+	$(pipeR)
+
+
+tmb_eval.Rout: tmb_eval.R tmb_fit.rds logistic.so tmb_funs.rda
 
 tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgts.rds tmb_funs.rda
 
@@ -177,14 +181,19 @@ sg.so: sg.cpp logistic_fit.h
 	touch $<
 	Rscript --vanilla -e "TMB::compile('$<')"
 
+Ignore += logistic.so logistic.o
+logistic.so: logistic.cpp logistic_fit.h
+	touch $<
+	Rscript --vanilla -e "TMB::compile('$<')"
+
 impmakeR += sgtmb
 ## btfake.sgtmb.Rout: sgtmb.R tmb_funs.R
 ## sgtf_ref.chop2.sgtmb.Rout: sgtmb.R tmb_funs.R
-%.sgtmb.Rout: sgtmb.R %.sgts.props.rds sg.so tmb_funs.rda
+%.sgtmb.Rout: sgtmb.R %.sgts.props.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
 ## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb.R tmb_funs.R
-%.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda
+%.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ## get ensemble (MVN sampling distribution)

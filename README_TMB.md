@@ -21,9 +21,10 @@
    - `log_theta`: log of size parameter for beta-binomial sampling error
 - stores info on predicted probabilities, estimated deltar by province (in addition to coefficient estimates etc.)
 - basic functions (see roxygen comments in `tmb_funs.R`)
-   - `fit_tmb(data, ...)`: basic model fitting
-   - ∃ methods: `coef()`, `vcov()`, `logLik()`, `tidy()`, (in `broom.mixed` pkg); `predict.srfit()` (prediction, expanding prov × time)
-   - `fit$report()`, `TMB::sdreport(fit)`
+   - `fit_tmb(data, ...)`: basic model fitting. Returned objects have class `c("logistfit", "TMB")`
+   - ∃ TMB methods: `coef()`, `vcov()`, `logLik()`, `tidy()`, (in `broom.mixed` pkg)
+   - ∃ logistfit methods: `predict()` (prediction, expanding prov × time)
+   - TMB built-in functions: `fit$report()`, `TMB::sdreport(fit)`
    - `get_tmb_file(fit)`, `get_prov_names(fit)`, `get_data(fit)` retrieve carried-along info
 
 ## Random effects
