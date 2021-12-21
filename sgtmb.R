@@ -5,8 +5,6 @@ library(dplyr)
 loadEnvironments()
 soLoad()
 
-## currently using 'sgts' fake data; tmb_fit() wants a `tot` column
-
 ## fit (using all defaults)
 tt <- tmb_fit(data = rdsRead(),
               two_stage = TRUE,
@@ -16,10 +14,9 @@ tt <- tmb_fit(data = rdsRead(),
               upper = list(log_theta = 20),
               lower = NULL,
               priors = list(logsd_logdeltar =
-                                prior_params(log(0.01), log(0.3))),
+                prior_params(lwr=log(0.01), upr=log(0.3))),
               map = list(),  ## no fixed params
-              debug_level = 0,
-              tmb_file = "sg"
+              debug_level = 0
 )
 
 rdsSave(tt)

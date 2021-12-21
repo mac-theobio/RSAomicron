@@ -172,7 +172,7 @@ tmb_stan.Rout: tmb_stan.R tmb_fit.rds tmb_funs.rda
 ## Piping the Bolker stuff
 
 ## Compile a TMB model
-Ignore += logistic_fit_fixedloc.so
+Ignore += sg.so sg.o
 sg.so: sg.cpp logistic_fit.h
 	touch $<
 	Rscript --vanilla -e "TMB::compile('$<')"

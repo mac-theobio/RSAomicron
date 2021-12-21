@@ -118,11 +118,13 @@ tmb_fit <- function(data,
                                       prior_params(log(0.01), log(0.3))),
                     map = list(),
                     debug_level = 0,
-                    tmb_file = "sr")
+                    tmb_file = NULL)
 {
     ## FIXME: figure out how to do this externally ...
-    TMB::compile(paste0(tmb_file, ".cpp"))
-    dyn.load(dynlib(tmb_file))
+	 if(!is.null(tmb_file)) {
+		 TMB::compile(paste0(tmb_file, ".cpp"))
+		 dyn.load(dynlib(tmb_file))
+	 }
 
     ## general (applies to both random- and fixed-loc models)
     ## FIXME:
