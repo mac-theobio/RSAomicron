@@ -19,6 +19,7 @@
    - `lodrop`: log-odds of false negative SGTF (i.e. omicron w/o SGTF)
    - `logain`: log-odds of false positive SGTF (i.e. non-omicron w/ SGTF)
    - `log_theta`: log of size parameter for beta-binomial sampling error
+- stores info on predicted probabilities, estimated deltar by province (in addition to coefficient estimates etc.)
 
 ## Current status
 
@@ -30,13 +31,12 @@
 
 - explore results more. Remove lower bound on logsd_logdeltar now that prior is set up?
 - try on real data and see how it works!
-- explore `tmb_ci.Rout` results
+- explore `tmb_ci.Rout` results (still a bit wonky?)
 - importance sampling? `tmbstan`?
 - set up `sr.cpp` (i.e., add reinfection to data and model); adjust `tmb_fit()` accordingly
 
 ### cosmetic/cleanup
 
-- report delta-r at the provincial level
 
 ### medium
 
