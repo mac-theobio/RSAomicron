@@ -1,5 +1,4 @@
 library(shellpipes)
-rpcall("tmb_ci.Rout tmb_ci.R tmb_fit.rds")
 library(broom.mixed)
 if (packageVersion("broom.mixed") < "0.2.9") stop("please install latest version of broom.mixed via remotes::install('bbolker/broom.mixed')")
 library(dplyr)
@@ -7,7 +6,7 @@ library(TMB) ## still need it to operate on TMB objects
 
 fit <- rdsRead()
 loadEnvironments()
-dyn.load(dynlib(get_tmb_file(fit)))
+soLoad()
 
 cmvec <- c("wald", "profile", "uniroot")
 names(cmvec) <- cmvec ## ugh: for purrr::map_dfr .id

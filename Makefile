@@ -161,7 +161,7 @@ tmb_eval.Rout: tmb_eval.R tmb_fit.rds logistic.so tmb_funs.rda
 
 tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgs.rds tmb_funs.rda
 
-tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda
+tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda logistic.so
 
 tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
 
@@ -196,6 +196,10 @@ impmakeR += sgtmb
 %.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
+## fit using data/model with reinfection
+## refactor? these are repeated from the sgtmb rules above,
+##  only change is sgts -> srts, sgtmb -> srtmb
+##  primary code files are identical/smart enough to know what they're getting
 %.srtmb.Rout: sgtmb.R %.srts.props.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
