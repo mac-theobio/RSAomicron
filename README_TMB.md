@@ -26,6 +26,12 @@
    - `fit$report()`, `TMB::sdreport(fit)`
    - `get_tmb_file(fit)`, `get_prov_names(fit)`, `get_data(fit)` retrieve carried-along info
 
+## Random effects
+
+- at the 'observation' level (i.e. province × day), beta-binomial error and observation-level RE on the logit scale is approximately equivalent. B-B is probably slightly more robust (by analogy with lots of conversations about Gamma vs log-normal in count models, also something by Harrison [PeerJ?]). Logit-gaussian is better for transition to more sophisticated stuff like random-walk or autocorrelated noise ...
+- random effects of deltar across province make perfect sense
+- random effects of beta_reinf? (What is the biology?) Should they be correlated with the deltar effects?
+
 ## Current status
 
 - fits current fake (`btfake.sgts.rds`) data OK.
@@ -39,6 +45,7 @@
 - try on real data and see how it works!
 - explore `tmb_ci.Rout` results (still a bit wonky?)
 - importance sampling? `tmbstan`? (will need more priors?)
+   - works, sort of, but we probably need priors on deltar, lodrop, logain to keep out of trouble
 
 ### cosmetic/cleanup
 

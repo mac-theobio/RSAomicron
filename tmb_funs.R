@@ -110,6 +110,7 @@ prior_params <- function(lwr, upr, conf = 0.95) {
 tmb_fit <- function(data,
                     two_stage = TRUE,
                     fixed_loc = TRUE,
+                    reinf_effect = FALSE,
                     start = list(log_deltar = log(0.1),
                                  lodrop = -4, logain = -7),
                     upper = list(log_theta = 20),
