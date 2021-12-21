@@ -5,8 +5,8 @@
 - `tmb_funs.R`: utilities (TMB methods, general pipeline utils)
 - `tmb_fit.R`: construct TMB models, parameters, fit (currently only to fake data)
 - `tmb_eval.R`: basic downstream machinery: predictions, some CIs, etc.
-- `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow, not working yet!
-- `gen_funs.R`: more utility functions (not TMB-specific)
+- `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow, not complete debugged
+- `gen_funs.R`: more utility functions (not TMB-specific; currently unused)
 
 ## Description
 
@@ -20,6 +20,11 @@
    - `logain`: log-odds of false positive SGTF (i.e. non-omicron w/ SGTF)
    - `log_theta`: log of size parameter for beta-binomial sampling error
 - stores info on predicted probabilities, estimated deltar by province (in addition to coefficient estimates etc.)
+- basic functions (see roxygen comments in `tmb_funs.R`)
+   - `fit_tmb(data, ...)`: basic model fitting
+   - ∃ methods: `coef()`, `vcov()`, `logLik()`, `tidy()`, (in `broom.mixed` pkg); `predict.srfit()` (prediction, expanding prov × time)
+   - `fit$report()`, `TMB::sdreport(fit)`
+   - `get_tmb_file(fit)`, `get_prov_names(fit)`, `get_data(fit)` retrieve carried-along info
 
 ## Current status
 
@@ -29,14 +34,15 @@
 
 ### high priority
 
-- explore results more. Remove lower bound on logsd_logdeltar now that prior is set up?
+- set up `sr.cpp` (i.e., add reinfection to data and model); adjust `tmb_fit()` accordingly (gracefully fall back to current model when reinfections are missing from data)
+- explore current results more
 - try on real data and see how it works!
 - explore `tmb_ci.Rout` results (still a bit wonky?)
-- importance sampling? `tmbstan`?
-- set up `sr.cpp` (i.e., add reinfection to data and model); adjust `tmb_fit()` accordingly
+- importance sampling? `tmbstan`? (will need more priors?)
 
 ### cosmetic/cleanup
 
+- better incorporation into Make-style pipeline?
 
 ### medium
 

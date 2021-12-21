@@ -15,7 +15,6 @@ names(cmvec) <- cmvec ## ugh: for purrr::map_dfr .id
 ## tidy(tmb_betabinom, conf.int = TRUE, conf.method = "profile")
 ## tidy(tmb_betabinom, conf.int = TRUE, conf.method = "uniroot")
 
-## FIXME:: fix province names upstream
 system.time(
     tt <- purrr::map_dfr(cmvec,
                          ~ tidy(fit,

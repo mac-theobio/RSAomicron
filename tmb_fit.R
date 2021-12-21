@@ -4,16 +4,18 @@ library(TMB)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 
+startGraphics()
 loadEnvironments()
+## currently using 'sgts' fake data; tmb_fit() wants a `tot` column
 s0 <- (rdsRead()
     |> mutate(tot = omicron + delta)
 )
-## make fake sim data use my previous format
-## TODO: standardize on something appropriate
 
+## data exploration: no real fitting, just quasibinomial GAMs by province
 gg0 <- (ggplot(s0, aes(time, omicron/tot))
     + geom_point(aes(size = tot), alpha=0.5)
     + facet_wrap(~prov)
+    ## could use quasibinomial but CIs from binomial are already very wide ...
     + geom_smooth(method = "gam", method.args = list(family = binomial),
                   aes(weight = tot),
                   formula = y ~ s(x, bs = "cs")) ## avoid message
@@ -21,7 +23,19 @@ gg0 <- (ggplot(s0, aes(time, omicron/tot))
 )
 print(gg0)
 
-tt <- tmb_fit(s0)
+## fit (using all defaults)
+tt <- tmb_fit(data = s0,
+              two_stage = TRUE,
+              fixed_loc = TRUE,
+              start = list(log_deltar = log(0.1),
+                           lodrop = -4, logain = -7),
+              upper = list(log_theta = 20),
+              lower = NULL,
+              priors = list(logsd_logdeltar =
+                                prior_params(log(0.01), log(0.3))),
+              map = list(),  ## no fixed params
+              debug_level = 0,
+              tmb_file = "sr")
 
 ## experimentation
 if (FALSE) {
@@ -29,3 +43,4 @@ if (FALSE) {
 }
 
 rdsSave(tt)
+dev.off()
