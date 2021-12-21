@@ -23,7 +23,9 @@ print(gg0)
 
 tt <- tmb_fit(s0)
 
+## experimentation
 if (FALSE) {
-    tmb_fit(s0, lower = NULL, debug_level = 4)
+    t1 <- tmb_fit(s0, lower = NULL, debug_level = 4)
 }
+
 rdsSave(tt)

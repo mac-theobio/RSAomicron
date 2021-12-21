@@ -28,9 +28,11 @@
 
 ### high priority
 
-- explore results more.
-- trouble-shoot `tmb_CI.R`
-- set up `sr.cpp` (i.e., add reinfection to data and model)
+- explore results more. Remove lower bound on logsd_logdeltar now that prior is set up?
+- try on real data and see how it works!
+- explore `tmb_ci.Rout` results
+- importance sampling? `tmbstan`?
+- set up `sr.cpp` (i.e., add reinfection to data and model); adjust `tmb_fit()` accordingly
 
 ### cosmetic/cleanup
 
@@ -51,9 +53,12 @@
 
 ### low
 
+- break up `tmb_funs.R` ?
+- list of required packages/versions
 - see if we can skip binom fit as a preliminary stage
 - DRY; combine logistic_fit_fixed.cpp and logistic_fit.cpp (without making code unreadable)???
 - include random effect of date? (alternative to beta-binomial ...) Stepping stone to an autocorrelated random effect
 - try to compute `nprov` (number of provinces) internally rather than passing via data?
+- power exponential priors as in WNV project?
 - *Way* premature, but could parallelize some of the computations, both at the CI stage (via parapply) and internally (OpenMP)
  

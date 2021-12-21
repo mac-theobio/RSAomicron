@@ -14,7 +14,6 @@ fit <- rdsRead()
 loadEnvironments()
 dyn.load(dynlib(get_tmb_file(fit)))
 
-
 ## predicted probabilities:
 summary(fit$report()$prob)
 coef(fit)
@@ -47,21 +46,23 @@ print(gg1)
 ## estimate, standard errors, Wald CIs
 t1 <- tidy(fit, conf.int = TRUE)
 
-## plot
+## plot 
+v <- rr$value$log_deltar_vec
+s <- rr$sd$log_deltar_vec
+deltar_data <- (tibble(
+    prov = get_prov_names(fit),
+    deltar = exp(v),
+    lwr = exp(v - 1.96*s),
+    upr = exp(v + 1.96*s))
+    %>% mutate(across(prov, forcats::fct_reorder, deltar))
+)
+gg2A <- (ggplot(deltar_data,
+                aes(y = prov, x = deltar)))
 
+print(gg2A + geom_point())
 
-## better CIs
-if (FALSE) {
-    ## profiling (22 seconds for one parameter on laptop;
-    ##  should parallelize)
-    system.time(tmbprofile(tmb_betabinom, name = 1, trace=FALSE))
-    ## use root-finding/uniroot instead (15 seconds)
-    system.time(tmbroot(tmb_betabinom, name = 1, trace=FALSE))
-    ## to do all parameters ... FIXME, put this in a downstream file
-    system.time(
-        tidy(tmb_betabinom, conf.int = TRUE, conf.method = "profile")
-    )
-}
+## boring! width of CIs >>  range of values
+print(gg2A + geom_pointrange(aes(xmin = lwr, xmax = upr)))
 
 ## get ensemble (MVN sampling distribution)
 

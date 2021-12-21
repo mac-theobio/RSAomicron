@@ -161,6 +161,8 @@ tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda
 
 tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
 
+tmb_stan.Rout: tmb_stan.R tmb_fit.rds tmb_funs.rda
+
 ######################################################################
 
 ## More experimental branching stuff
