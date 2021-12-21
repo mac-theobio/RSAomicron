@@ -1,5 +1,5 @@
 library(shellpipes)
-rpcall("tmb_fit.Rout tmb_fit.R btfake.sgts.rds sr.cpp logistic_fit.h tmb_funs.rda")
+
 library(TMB)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
@@ -35,7 +35,7 @@ tt <- tmb_fit(data = s0,
                                 prior_params(log(0.01), log(0.3))),
               map = list(),  ## no fixed params
               debug_level = 0,
-              tmb_file = "sr")
+              tmb_file = "sg")
 
 ## experimentation
 if (FALSE) {
