@@ -86,8 +86,8 @@ impmakeR += sgts
 
 ## Date stuff
 
-impmakeR += chop2
-%.chop2.Rout: chop2.R %.rds
+impmakeR += chop2.srts
+%.chop2.srts.Rout: chop2.R %.srts.rds
 	$(pipeR)
 
 ######################################################################
@@ -151,7 +151,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
 
-tmb_fit.Rout: tmb_fit.R btfake.sgts.rds sr.cpp logistic_fit.h tmb_funs.rda
+tmb_fit.Rout: tmb_fit.R btfake.sgts.rds sg.cpp logistic_fit.h tmb_funs.rda
 
 tmb_eval.Rout: tmb_eval.R tmb_fit.rds tmb_funs.rda
 
@@ -165,36 +165,58 @@ tmb_stan.Rout: tmb_stan.R tmb_fit.rds tmb_funs.rda
 
 ######################################################################
 
-## More experimental branching stuff
+## sgtf_ref.chop2.sgssmle2.Rout: sgssmle2.R
 
-## Accumulate parameters
-null.Rout: parms.R
+######################################################################
+
+## Piping the Bolker stuff
+
+## Compile a TMB model
+Ignore += logistic_fit_fixedloc.so
+sg.so: sg.cpp logistic_fit.h
+	touch $<
+	Rscript --vanilla -e "TMB::compile('$<')"
+
+impmakeR += sgtmb
+## btfake.sgtmb.Rout: sgtmb.R tmb_funs.R
+## sgtf_ref.chop2.sgtmb.Rout: sgtmb.R tmb_funs.R
+%.sgtmb.Rout: sgtmb.R %.sgts.props.rds sg.so tmb_funs.rda
 	$(pipeR)
+
+## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb.R tmb_funs.R
+%.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda
+	$(pipeR)
+
+## get ensemble (MVN sampling distribution)
+## 
+## pop_vals <- MASS::mvrnorm(1000,
+##  mu = coef(fit),
+##  Sigma = vcov(fit))
 
 ######################################################################
 
 ## Beta fitting
 
-impmakeR += btfit
+impmakeR += btfit.sgts
 %.btfit.sgts.Rout: parms.R %.sgts.props.rds betatheta.rda
 	$(pipeR)
 
-impmakeR += bsfit
+impmakeR += bsfit.sgts
 %.bsfit.sgts.Rout: parms.R %.sgts.props.rds betasigma.rda
 	$(pipeR)
 
 ######################################################################
 
 ## Parameters to fix
-impmakeR += ssfix
+impmakeR += ssfix.sgts
 %.ssfix.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfix.rda
 	$(pipeR)
 
-impmakeR += ssfitspec
+impmakeR += ssfitspec.sgts
 %.ssfitspec.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfitspec.rda
 	$(pipeR)
 
-impmakeR += ssfitboth
+impmakeR += ssfitboth.sgts
 %.ssfitboth.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfitboth.rda
 	$(pipeR)
 
@@ -204,10 +226,7 @@ impmakeR += ssfitboth
 
 ## btfake.btfit.ssfix.sgssindfit.Rout: sgssindfit.R
 ## bsfake.btfit.ssfitspec.sgssindfit.Rout: sgssindfit.R
-
 ## sgtf_ref.btfit.ssfitspec.sgssindfit.Rout: sgssindfit.R
-
-## ssfix.btenv.rda:
 
 ## If this works, merge back into mle2
 impmakeR += sgssindfit

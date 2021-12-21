@@ -1,15 +1,38 @@
-## 
 
-- `bs`: Standard θ formulation θ = a + b
-- `bt`: Standard formulation σ = ab/(a+b)
 
-- `sg` gives data for counts of S-gene target failure not differentiated by reinfection
-- `sr` gives data for reinfection, not differentiated by S-gene target status
+## Beta formulations
+- `bs`: JD formulation σ = ab/(a+b)
+- `bt`: Standard formulation θ = a + b
 
-- `ts` stands for time series
+# Data sets
 
-- `sgssmle` is the sensitivity and specificity MLE fit to sg
+## Input
 
-- `sgssindfit` ?
+* sgtf_ref
+* bsfake (simulated using sigma formulation)
+* btfake (simulated using theta formulation)
 
--  ~ + reinf
+## Series types
+
+sr/sg for the data differentiated/not by reinfection
+* · ll/ts for linelist or aggregated time series
+* Concatenation here might be a mistake; better to say .sg.ts. I think.
+
+## Time points
+
+* chop2 (take the last two days off of the data series)
+
+# sensitivity/specificity mle2 analysis (needs to be re-combined)
+
+## beta binomial paradigm
+
+* bsfit or bsfit
+
+## Parameter assumptions
+* ssfix – fix logain and lodrop
+* ssfitspec – fix logain
+* ssfitboth – fix neither
+
+## Targets (in flux) ⇒ 
+
+* ssmle2
