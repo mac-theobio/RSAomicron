@@ -42,10 +42,8 @@
 
 - set up `sr.cpp` (i.e., add reinfection to data and model); adjust `tmb_fit()` accordingly (gracefully fall back to current model when reinfections are missing from data)
 - explore current results more
-- try on real data and see how it works!
 - explore `tmb_ci.Rout` results (still a bit wonky?)
-- importance sampling? `tmbstan`? (will need more priors?)
-   - works, sort of, but we probably need priors on deltar, lodrop, logain to keep out of trouble
+- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
 
 ### cosmetic/cleanup
 
@@ -53,11 +51,12 @@
 
 ### medium
 
+- importance sampling? `tmbstan`? (will need more priors?)
+   - works, sort of, but we probably need priors on deltar, lodrop, logain to keep out of trouble
 - write (unit) tests!
 - machinery for automatic binom/beta-binom switching/robust fitting
 - `SIMULATE` methods
-- switches for fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
-    - making loc a fixed effect seemed necessary to get workable answers: can we relax this?
+- making loc a fixed effect seemed necessary to get workable answers: can we relax this?
 - adjustable beta-binomial parameterizations? Do we really need this?
 - log-scale/robust machinery
 - alternatively try using standard mixed model (also good for comparison of effects of allowing for drop/gain)

@@ -1,8 +1,15 @@
 template<class Type>
-Type baselogis(int tvec, Type loc, Type deltar, Type lodrop, Type logain, Type intercept) {
+Type baselogis_int(int tvec, Type loc, Type deltar, Type lodrop, Type logain, Type intercept) {
 	Type drop = invlogit(lodrop);
 	Type gain = invlogit(logain);
 	Type ptrue = invlogit((tvec-loc)*deltar + intercept);
+	return (ptrue*(1-gain) + (1-ptrue)*drop);
+}
+
+Type baselogis(int tvec, Type loc, Type deltar, Type lodrop, Type logain) {
+	Type drop = invlogit(lodrop);
+	Type gain = invlogit(logain);
+	Type ptrue = invlogit((tvec-loc)*deltar);
 	return (ptrue*(1-gain) + (1-ptrue)*drop);
 }
 
