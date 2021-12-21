@@ -90,10 +90,21 @@ copyEnv <- function(e1, debug = FALSE) {
     return(e2)
 }
 
+## compute mean and SD of Gaussian prior from lower/upper bounds of
+## confidence interval
+prior_params <- function(lwr, upr, conf = 0.95) {
+    m <- (lwr + upr)/2
+    s <- (upr-m)/qnorm((1+conf)/2)
+    c(mean = m, sd = s)
+}
+
 #' @param data data frame containing (at least) columns "prov", "time",
 #' "omicron", "tot", "prop", and "reinf" (may be NA if reinf param is mapped to 0)
 #' @param two_stage (logical) fit binomial model first?
-#' @param start list of starting values
+#' @param start named list of starting values
+#' @param upper named list of upper bounds
+#' @param lower named list of lower bounds
+#' @param priors named list of vectors of mean and sd for independent Gaussian priors on parameters
 #' @param map list of parameters to be fixed to starting values (in the form of a factor with NA values for any elements in the vector to be fixed: see \code{map} argument of \code\link{MakeADFun}})
 #' @param debug_level numeric specifying level of debugging
 tmb_fit <- function(data,
@@ -103,6 +114,8 @@ tmb_fit <- function(data,
                                  lodrop = -4, logain = -7),
                     upper = list(log_theta = 20),
                     lower = list(logsd_logdeltar = -5),
+                    priors = list(logsd_logdeltar =
+                                      prior_params(log(0.01), log(0.3))),
                     map = list(),
                     debug_level = 0,
                     tmb_file = "sr")
@@ -118,6 +131,11 @@ tmb_fit <- function(data,
     data$prov <- factor(data$prov)
     np <- length(levels(data$prov))
     tmb_data <- c(data, list(nprov = np, debug = debug_level))
+    if (!is.null(priors)) {
+        for (nm in names(priors)) {
+            tmb_data[[paste0("prior_",nm)]] <- priors[[nm]]
+        }
+    }
     loc_start <- mean(data$time)
     if (!fixed_loc) stop("random loc is not currently implemented")
     nRE <- 1

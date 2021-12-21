@@ -11,8 +11,11 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(nprov);            // num provinces: should compute from data?
   DATA_IVECTOR(omicron);         // number of recorded SGTF dropouts
   DATA_IVECTOR(tot);  // number of confirmed cases
-	DATA_INTEGER(debug);            // debugging flag
-	
+  DATA_INTEGER(debug);            // debugging flag
+
+
+  DATA_VECTOR(prior_logsd_logdeltar);     // prior mean, sd
+  
   PARAMETER_VECTOR(loc);          // midpoint of takeover curve (fixed effect)
   PARAMETER(log_deltar);              // takeover rate
   PARAMETER_VECTOR(b);            // random effects vector: {deltar} x nprov
@@ -20,6 +23,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER(logain);              // log-odds of false positive for SGTF (universal)
   PARAMETER(log_theta);           // log of theta (Beta dispersion parameter)
   PARAMETER(logsd_logdeltar);              // SDs of {loc, deltar} REs
+
   // PARAMETER_VECTOR(corr);         // correlation among SDs (unused now since only 1 RE per block)
 
   int nobs = omicron.size();
@@ -88,9 +92,15 @@ Type objective_function<Type>::operator() ()
 			std::cout << i << " " << prob(i) << " " << omicron(i) << " " <<
 				tot(i) << " " << nll << " " << res << "\n";
 		}
-  }
+		
+  } // loop over observations
 
 
+	// priors
+	if (!notFinite(prior_logsd_logdeltar(0))) {
+		nll -= dnorm(logsd_logdeltar, prior_logsd_logdeltar(0),
+								 prior_logsd_logdeltar(1), true);
+	}
 	
 	REPORT(prob);
 	REPORT(log_deltar_vec);

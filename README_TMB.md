@@ -1,20 +1,17 @@
 ## Notes on TMB implementation
 
-- `logistic_fit_fixedloc.cpp`: basic fitting machinery
-     - name change to `sg.cpp` ?
+- `sr.cpp`: basic fitting machinery
 - `logistic_fit.h`: utilities (dbetabinom parameterizations, logistic-with-error function, etc.)
 - `tmb_funs.R`: utilities (TMB methods, general pipeline utils)
 - `tmb_fit.R`: construct TMB models, parameters, fit (currently only to fake data)
 - `tmb_eval.R`: basic downstream machinery: predictions, some CIs, etc.
-- `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow!
+- `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow, not working yet!
 - `gen_funs.R`: more utility functions (not TMB-specific)
 
 ## Current status
 
 - fits current fake (`btfake.sgts.rds`) data OK (both `logain` and `lodrop` estimates are small but reasonable, around -4), with some issues:
-   - `log_sd` of delta-r is small (-4), its SD cannot be recovered
-   - cov matrix is non-pos-def even once we exclude `log_sd`
-- `tmb_CI.R` currently failing
+   - `log_sd` of log-delta-r is small: need to set prior/bound
 
 ## Issues/to-do
 
