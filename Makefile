@@ -230,19 +230,20 @@ impmakeR += ssfitboth.sgts
 ## FIXME rda/rds logic
 ## FIXME doublefit stuff
 impmakeR += sgssmle2
-%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds %.sgts.rda
+%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds %.sgts.rda ssfitfuns.rda
 	$(pipeR)
 
 ######################################################################
 
 ## A standard fit for comparing to the tmb fit
+## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 comp_fit.sgssmle2.rda: main.btfit.ssfitboth.sgssmle2.rda
 	$(forcelink)
 
 ## Tidy and make plots
 ## comp_fit.mle2tidy.Rout: mle2tidy.R
 %.mle2tidy.Rout: mle2tidy.R %.sgssmle2.rda
-	$(pipeRcall)
+	$(pipeR)
 
 ######################################################################
 

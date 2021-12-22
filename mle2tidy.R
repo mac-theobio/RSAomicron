@@ -4,8 +4,9 @@ library(dplyr)
 ## library(emdbook)
 
 library(shellpipes)
-rpcall("comp_fit.mle2tidy.Rout mle2tidy.R comp_fit.sgssmle2.rda")
 loadEnvironments()
+
+print(names(fitlist))
 
 coefdf <- (names(fitlist)
 	%>% lapply(function(p){
