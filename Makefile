@@ -42,6 +42,7 @@ autopipeR = defined
 Sources += $(wildcard *.R *.md)
 
 Sources += content.mk ## stuff from mvRt Makefile
+Sources += old.mk ## stuff dropped from here
 
 pipeclean:
 	$(RM) *.Rout *.rds *.rda
@@ -57,6 +58,8 @@ Ignore += cribdir
 	$(copy)
 
 ######################################################################
+
+## Dictionary files (right now just provinces)
 
 Sources += $(wildcard *.dict.tsv)
 
@@ -151,7 +154,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
-%.sgrtmb.Rout: sgtmb.R %.sgts.props.rds logistic.so tmb_funs.rda
+%.sgrtmb.Rout: tmbfit.R %.sgts.props.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
 ######################################################################

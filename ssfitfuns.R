@@ -26,11 +26,10 @@ doublefit <- function(
 	if(wald){
 		wt <- try(confint(m, type="quad"))
 		if (inherits(wt, "matrix")) wi <- wt
-		wi <- wt
 	}
 	pi <- NULL
 	if(profile){
-		pt <- try(confint(m))
+		pt <- try(confint(m, type="uniroot"))
 		if (inherits(pt, "matrix")) pi <- pt
 	}
 	return(list(m=m, wi=wi, pi=pi))

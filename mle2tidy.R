@@ -10,27 +10,34 @@ loadEnvironments()
 
 coefdf <- (names(fitlist)
 	%>% lapply(function(p){
-		mod <- fitlist[[p]]$m
-		cc <-  fitlist[[p]]$wi
-		print(p)
-		print(summary(cc))
-		return(class(cc))
-		if (is.null(cc)) return(NULL)
+		fit <- fitlist[[p]]
+		mod <- fit$m
+		cc <- fit$pi
+		if(is.null(cc)){
+			cc <- fit$wi
+			if (is.null(cc)){
+				warning("No CI for ", p)
+				return(NULL)
+			}
+			warning("Using Wald CI for ", p)
+			
+		}
+
 		dd <- (as.data.frame(cc)
-		  %>% mutate(prov = p
-			  , param = rownames(.)
-		  )
+			%>% mutate(prov = p
+				, param = rownames(.)
+			)
 		)
 		rownames(dd) <- NULL
 		colnames(dd) <- c("lwr","upr","prov","param")
 		
 		coefdat <- data.frame(prov = p
-		  , param = names(coef(mod))
-		  , est = coef(mod)
+			, param = names(coef(mod))
+			, est = coef(mod)
 		)
 		return(left_join(dd,coefdat))
 	})
-) ## %>% bind_rows
+) %>% bind_rows
 
 print(coefdf)
 rdsSave(coefdf)
