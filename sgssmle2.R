@@ -1,16 +1,16 @@
 library(bbmle)
 library(dplyr)
 library(emdbook)
-## FIXME: why do we need a seed here? Are we doing anything non-deterministic?
-## Is optim never stochastic?
 set.seed(1200)
 
 library(shellpipes)
-rpcall("btfake.sgssmle2.Rout sgssmle2.R btfake.sgts.props.rds betatheta.rda")
-
 
 dat <- rdsRead()
 loadEnvironments()
+
+print(fixList)
+
+quit()
 
 summary(dat)
 
@@ -18,11 +18,9 @@ summary(dat)
 ## Consider: look at other b-b parameterizations
 
 bbsizemax <- 100
-
 ## Iterate until convergence
 cList = list(maxit = 5000)
 
-## FIXME: move to a utils file?
 ## Logistic function with imperfect testing
 baselogis <- function(tvec, loc, delta_r, lodrop, logain){
 	drop <- plogis(lodrop)
@@ -69,10 +67,11 @@ bbfit <- function(dat, curr){
 	return(list(m=m, ci=ci))
 }
 
-provlist <- dat %>% pull(prov) %>% unique()
+provlist <- dat %>% pull(prov) %>% unique
 fitlist <- list()
 for (cp in provlist){
 	fitlist[[cp]] <- bbfit(dat, cp)
 }
 
 saveVars(baselogis, fitlist)
+

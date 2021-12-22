@@ -17,6 +17,10 @@ vim_session:
 ######################################################################
 
 Sources += $(wildcard *.make)
+## <edit> dubzee.make
+## dubzee.local:
+## /bin/rm -r data
+## data:
 %.local:
 	$(LN) $*.make local.mk
 
@@ -44,7 +48,7 @@ pipeclean:
 
 ######################################################################
 
-## Crib rule
+## Crib rule Get rid of this soon 2021 Dec 21 (Tue)
 ## ln -s ../omike cribdir ##
 
 Ignore += cribdir
@@ -77,6 +81,7 @@ impmakeR += srts
 %.srts.Rout: sr_agg.R %.srll.rds simDates.rda
 	$(pipeR)
 
+## FIXME: ⇒ sg.ts (etc.)
 ## Aggregate across reinf for sg
 impmakeR += sgts
 %.sgts.Rout: sgtf_agg.R %.srts.rds
@@ -98,11 +103,12 @@ impmakeR += props
 %.props.Rout: props.R %.rds
 	$(pipeR)
 
+## FIXME simpler name for ts.props (tsfull?)
 ## sgtf_ref.srts.chop2.props.Rout:
-main.srts.rds: sgtf_ref.srts.chop2.props.rds
+main.srts.props.rds: sgtf_ref.srts.chop2.props.rds
 	$(forcelink)
 
-main.sgts.rds: sgtf_ref.sgts.chop2.props.rds
+main.sgts.props.rds: sgtf_ref.chop2.sgts.props.rds
 	$(forcelink)
 
 ######################################################################
@@ -143,13 +149,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
-## (Frozen for Bolker)
-
-## SS mle fit
-## bsfake.sgssmle2.Rout: sgssmle2.R bsfake.sgts.rds 
-## btfake.sgssmle2.Rout: sgssmle2.R btfake.sgts.rds 
-%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
-	$(pipeR)
+## Deprecated; move down to next section 2021 Dec 21 (Tue)
 
 tmb_fit.Rout: tmb_fit.R btfake.sgts.rds sg.cpp logistic_fit.h tmb_funs.rda
 
@@ -165,9 +165,6 @@ tmb_stan.Rout: tmb_stan.R tmb_fit.rds tmb_funs.rda
 
 ######################################################################
 
-## sgtf_ref.chop2.sgssmle2.Rout: sgssmle2.R
-
-######################################################################
 
 ## Piping the Bolker stuff
 
@@ -183,8 +180,8 @@ impmakeR += sgtmb
 %.sgtmb.Rout: sgtmb.R %.sgts.props.rds sg.so tmb_funs.rda
 	$(pipeR)
 
-## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb.R tmb_funs.R
-%.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda
+## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb_eval.R tmb_funs.R
+%.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds sg.so tmb_funs.rda
 	$(pipeR)
 
 ## get ensemble (MVN sampling distribution)
@@ -224,14 +221,31 @@ impmakeR += ssfitboth.sgts
 
 ## mle2 fitting
 
-## btfake.btfit.ssfix.sgssindfit.Rout: sgssindfit.R
-## bsfake.btfit.ssfitspec.sgssindfit.Rout: sgssindfit.R
-## sgtf_ref.btfit.ssfitspec.sgssindfit.Rout: sgssindfit.R
-
-## If this works, merge back into mle2
-impmakeR += sgssindfit
-%.sgssindfit.Rout: sgssindfit.R %.sgts.rds %.sgts.rda
+## SS mle fit
+## bsfake.sgssmle2.Rout: sgssmle2.R bsfake.sgts.rds 
+## btfake.sgssmle2.Rout: sgssmle2.R btfake.sgts.rds 
+%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
 	$(pipeR)
+
+## btfake.btfit.ssfix.sgssmle2.Rout: sgssmle2.R
+## bsfake.btfit.ssfitspec.sgssmle2.Rout: sgssmle2.R
+## main.btfit.ssfitspec.sgssmle2.Rout: sgssmle2.R
+## FIXME rda/rds logic
+## FIXME doublefit stuff
+impmakeR += sgssmle2
+%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds %.sgts.rda
+	$(pipeR)
+
+######################################################################
+
+## A standard fit for comparing to the tmb fit
+comp_fit.sgssmle2.rda: main.btfit.ssfitboth.sgssmle2.rda
+	$(forcelink)
+
+## Tidy and make plots
+## comp_fit.mle2tidy.Rout: mle2tidy.R
+%.mle2tidy.Rout: mle2tidy.R %.sgssmle2.rda
+	$(pipeRcall)
 
 ######################################################################
 

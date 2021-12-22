@@ -11,7 +11,7 @@ startGraphics()
 ## includes fits, sim data (ss), file name/type info
 fit <- rdsRead()
 loadEnvironments()
-dyn.load(dynlib(get_tmb_file(fit)))
+soLoad()
 
 ## predicted probabilities:
 summary(fit$report()$prob)
@@ -62,5 +62,3 @@ gg2A <- (ggplot(deltar_data,
 
 ## boring! width of CIs >>  range of values
 print(gg2A + geom_pointrange(aes(xmin = lwr, xmax = upr)))
-
-                          
