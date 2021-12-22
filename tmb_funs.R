@@ -251,7 +251,7 @@ get_data <- function(x) {
 		L <- lengths(dd)
 		dd <- (dd[L == max(L)]
 				%>% as.data.frame()	 ## not tibble (collapsing list)
-				%>% mutate(across(prov, factor, labels = get_prov_names(fit)))
+				%>% mutate(across(prov, factor, labels = get_prov_names(x)))
 				%>% as_tibble()
 		)
 		return(dd)
