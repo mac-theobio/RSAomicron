@@ -65,7 +65,9 @@ Sources += $(wildcard *.dict.tsv)
 ## Line-list sources and cleaning
 
 ## Combined line list merged by CP 9 Dec
-data/sgtf_ref.rds: data ;
+## FIXME: does order-only rule do this better than $(MAKE)?
+data/sgtf_ref.rds:
+	$(MAKE) data
 sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 	$(pipeR)
 
@@ -221,15 +223,10 @@ impmakeR += ssfitboth.sgts
 
 ## mle2 fitting
 
-## SS mle fit
-## bsfake.sgssmle2.Rout: sgssmle2.R bsfake.sgts.rds 
-## btfake.sgssmle2.Rout: sgssmle2.R btfake.sgts.rds 
-%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds betatheta.rda ssfix.rda
-	$(pipeR)
-
 ## btfake.btfit.ssfix.sgssmle2.Rout: sgssmle2.R
 ## bsfake.btfit.ssfitspec.sgssmle2.Rout: sgssmle2.R
-## main.btfit.ssfitspec.sgssmle2.Rout: sgssmle2.R
+## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
+## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 ## FIXME rda/rds logic
 ## FIXME doublefit stuff
 impmakeR += sgssmle2

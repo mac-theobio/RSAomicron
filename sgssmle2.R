@@ -8,10 +8,6 @@ library(shellpipes)
 dat <- rdsRead()
 loadEnvironments()
 
-print(fixList)
-
-quit()
-
 summary(dat)
 
 ## We don't need beta-binomial if "size" is big
