@@ -172,15 +172,9 @@ tmb_stan.Rout: tmb_stan.R tmb_fit.rds tmb_funs.rda
 
 ######################################################################
 
-
-## Piping the Bolker stuff
-
 ## Compile a TMB model
-Ignore += sg.so sg.o
-sg.so: sg.cpp logistic_fit.h
-	touch $<
-	Rscript --vanilla -e "TMB::compile('$<')"
 
+Sources += logistic.cpp logistic_fit.h
 Ignore += logistic.so logistic.o
 logistic.so: logistic.cpp logistic_fit.h
 	touch $<
@@ -203,10 +197,9 @@ impmakeR += sgtmb
 %.srtmb.Rout: sgtmb.R %.srts.props.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
+## btfake.srtmb_eval.Rout: sgtmb_eval
 %.srtmb_eval.Rout: sgtmb_eval.R %.srtmb.rds logistic.so tmb_funs.rda
 	$(pipeR)
-
-
 
 ## get ensemble (MVN sampling distribution)
 ## 
@@ -271,6 +264,13 @@ comp_fit.sgssmle2.rda: main.btfit.ssfitboth.sgssmle2.rda
 ## comp_fit.mle2tidy.Rout: mle2tidy.R
 %.mle2tidy.Rout: mle2tidy.R %.sgssmle2.rda
 	$(pipeR)
+
+######################################################################
+
+## Experiments
+
+## each of bt/bs paradigm fits its own fake data better 2021 Dec 22 (Wed)
+btcompare.Rout: btcompare.R btfake.sgts.props.rds bsfake.sgts.props.rds tmb_funs.rda logistic.so
 
 ######################################################################
 

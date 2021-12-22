@@ -68,9 +68,8 @@ Type dbetabinom(Type y, Type a, Type b, Type n, int give_log=0)
 template<class Type>
 Type dbetabinom_sigma(Type y, Type prob, Type sigma, Type n, int give_log=0)
 {
-	Type x = sigma*prob*(1-prob);
-	Type a = x*prob;
-	Type b = x*(1-prob);
+	Type a = sigma/(1-prob);
+	Type b = sigma/prob;
 	return dbetabinom(y, a, b, n, give_log);
 }
 

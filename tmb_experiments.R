@@ -2,10 +2,12 @@ library(dplyr)
 library(TMB)
 library(broom.mixed)
 
+## Speedup
 library(furrr)
 plan(multicore, workers = 3)
 load("tmb_funs.rda")
 
+## Play with CIs (reinstall broom.mixed from github)
 tt0 <- readRDS("tmb_ci.rds")
 ff0 <- readRDS("tmb_fit.rds")
 dyn.load(dynlib("logistic"))
@@ -18,6 +20,7 @@ t2 <- system.time(tt2 <- tidy(ff0, conf.int = TRUE, conf.method = "uniroot"))
 ##    user  system elapsed 
 ## 332.118   1.960 196.060 
 
+## Explore parameterizations
 btdat <- readRDS("btfake.sgts.props.rds")
 bsdat <- readRDS("bsfake.sgts.props.rds")
 btdat_btfit <- tmb_fit(btdat)

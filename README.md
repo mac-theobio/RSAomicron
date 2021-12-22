@@ -1,5 +1,3 @@
-CONFLICT (content): Merge conflict in sgtmb_eval.R
-
 
 ## Beta formulations
 - `bs`: JD formulation σ = ab/(a+b)
