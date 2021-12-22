@@ -13,9 +13,9 @@ tt <- (tt
     %>% mutate(across(term, forcats::fct_inorder))
     %>% arrange(term)
 )
-## lots of profile values are bogus. tidier or tmbprofile or ??
 
-tt <- tt %>% filter(method != "profile")
+
+## tt <- tt %>% filter(method != "profile")
 print(tt, n = Inf)
 
 gg1 <- (ggplot(tt,
