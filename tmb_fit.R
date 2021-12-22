@@ -14,7 +14,6 @@ s0 <- (rdsRead()
 ## fit (using all defaults)
 tt <- tmb_fit(data = s0,
               two_stage = TRUE,
-              fixed_loc = TRUE,
               start = list(log_deltar = log(0.1),
                            lodrop = -4, logain = -7,
                            beta_reinf = 0),

@@ -118,7 +118,6 @@ prior_params <- function(lwr, upr, conf = 0.95) {
 #' @param debug_level numeric specifying level of debugging
 tmb_fit <- function(data,
 										two_stage = TRUE,
-										fixed_loc = TRUE,
 										reinf_effect = NULL,
                     betabinom_param = c("log_theta", "log_sigma"),
 										start = list(log_deltar = log(0.1),
@@ -177,7 +176,6 @@ tmb_fit <- function(data,
 				}
 		}
 		loc_start <- mean(data$time)
-		if (!fixed_loc) stop("random loc is not currently implemented")
 		nRE <- 1
 		tmb_pars_binom <- c(tmb_pars_binom,
 												list(loc = rep(loc_start, np),
