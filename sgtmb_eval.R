@@ -1,4 +1,5 @@
 library(shellpipes)
+## rpcall("btfake.sgtmb_eval.Rout sgtmb_eval.R btfake.sgtmb.rds tmb_funs.rda logistic.so")
 
 library(broom.mixed)
 library(dplyr)
@@ -12,6 +13,7 @@ reinf_colours <- c("black", "red")
 if (FALSE) {
     scale_size <- scale_size_area
 }
+plot_simple <- FALSE
 
 startGraphics()
 
@@ -24,42 +26,44 @@ soLoad()  ## still need to reload dynamic library
 summary(fit$report()$prob)
 coef(fit)
 
-rr <- sdreport_split(fit)
-
 ss0 <- get_data(fit)
 if (uses_reinf(fit)) {
     ## ggplot will want reinf to be a factor (for linetype/shape)
     ss0 <- ss0 %>% mutate(across(reinf, factor))
 }
 
+
 ## simple predictions (no filling-in of missing time values)
-ss1 <- (ss0
-    %>% mutate(pred = plogis(rr$value$loprob),
-               pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
-               pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
-)
+if (plot_simple) {
+    rr <- sdreport_split(fit)
 
-## base plot
-gg0 <- (ggplot(ss1, aes(time))
-    + geom_point(aes(y=omicron/tot, size = tot), alpha = pt_alpha)
-    + geom_line(aes(y=pred))
-    + geom_ribbon(aes(ymin = pred_lwr, ymax = pred_upr),
-                  colour = NA, alpha = 0.2)
-    + facet_wrap(~prov)
-    + scale_size()
-    + ggtitle("simple prediction (no time-interpolation)")
-)
-
-## extend the plot to show effect of reinfection
-if (uses_reinf(fit)) {
-    gg0 <- (gg0
-        + aes(shape = reinf, linetype = reinf, colour = reinf)
-        + scale_colour_manual(values = reinf_colours)
+    ss1 <- (ss0
+        %>% mutate(pred = plogis(rr$value$loprob),
+                   pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
+                   pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
     )
+
+    ## base plot
+    gg0 <- (ggplot(ss1, aes(time))
+        + geom_point(aes(y=omicron/tot, size = tot), alpha = pt_alpha)
+        + geom_line(aes(y=pred))
+        + geom_ribbon(aes(ymin = pred_lwr, ymax = pred_upr),
+                      colour = NA, alpha = 0.2)
+        + facet_wrap(~prov)
+        + scale_size()
+        + ggtitle("simple prediction (no time-interpolation)")
+    )
+
+    ## extend the plot to show effect of reinfection
+    if (uses_reinf(fit)) {
+        gg0 <- (gg0
+            + aes(shape = reinf, linetype = reinf, colour = reinf)
+            + scale_colour_manual(values = reinf_colours)
+        )
+    }
+
+    print(gg0)
 }
-
-print(gg0)
-
 
 ## more sophisticated prediction
 predvals <- predict(fit)
@@ -105,15 +109,7 @@ coefplot <- (ggplot(tt2, aes(x = estimate, y = term))
 print(coefplot)
 
 ## plot of delta-r by province
-v <- rr$value$log_deltar_vec
-s <- rr$sd$log_deltar_vec
-deltar_data <- (tibble(
-    prov = get_prov_names(fit),
-    deltar = exp(v),
-    lwr = exp(v - 1.96*s),
-    upr = exp(v + 1.96*s))
-    %>% mutate(across(prov, forcats::fct_reorder, deltar))
-)
+deltar_data <- get_deltar(fit)
 gg2A <- (ggplot(deltar_data,
                 aes(y = prov, x = deltar)))
 

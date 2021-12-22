@@ -15,6 +15,8 @@ Type baselogis(int tvec, Type loc, Type deltar, Type lodrop, Type logain) {
 }
 
 // compute baselogis entirely on the log scale
+// logit(prob) (== eta) to log(prob)
+// = -log(exp(0) + exp(-eta)) =  -logspace_add(Type(0), -eta);
 template<class Type>
 Type baselogis_logprob(int tvec, Type loc, Type deltar, Type lodrop, Type logain) {
 	// convert input parameters from logit (lo) to log scale (log_, )
@@ -53,18 +55,9 @@ Type dbetabinom(Type y, Type a, Type b, Type n, int give_log=0)
 	else return logres;
 }
 
-// OLD calculations to use a parameterization where dispersion parameter
-//  is approximately proportional to beta precision or variance
-// prob = a/(a+b) (= mean of Beta)
-// sigma = (a+b)/(prob*(1-prob))
-// = (a+b)^3/(a*b)
-// (approx = precision of Beta (= (a+b)^2*(a+b+1)/(a*b)))
-// sigma*prob*(1-prob) = a+b
-// sigma*prob^2*(1-prob) = a
-// sigma*prob*(1-prob)^2 = b
-
-// logit(prob) (== eta) to log(prob)
-// = -log(exp(0) + exp(-eta)) =  -logspace_add(Type(0), -eta);
+// sigma = a*b/(a+b)
+// p = a/(a+b)
+// sigma = ab/(a+b)
 template<class Type>
 Type dbetabinom_sigma(Type y, Type prob, Type sigma, Type n, int give_log=0)
 {

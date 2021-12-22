@@ -349,17 +349,36 @@ uses_reinf <- function(fit) {
     !"beta_reinf" %in% names(fit$env$map)
 }
 
+
+## factor in order **except** for first level
+## (current use doesn't really require collapsing via vapply() ...)
+mk_order <- function(x, v, anchor = "overall", FUN = mean) {
+    v0 <- v[x != anchor]
+    x0 <- x[x != anchor]
+    u0 <- unique(x0)
+    ord2 <- order(vapply(split(v0, x0), FUN, numeric(1), na.rm = TRUE))
+    x <- factor(x, levels = c(anchor, u0[ord2]))
+}
+
+##' return information from fit on population-level estimate and province-level values
 get_deltar <- function(fit) {
     rr <- sdreport_split(fit)
-    v <- rr$value$log_deltar_vec
-    s <- rr$sd$log_deltar_vec
+    v <- c(coef(fit)[["log_deltar"]],
+           rr$value$log_deltar_vec
+           )
+    s <- c(
+        ## FIXME: re-extracting vcov is a little slow. Store it with the object?
+        sqrt(diag(vcov(fit)))[["log_deltar"]],
+        rr$sd$log_deltar_vec
+    )
     deltar_data <- (tibble::tibble(
-        prov = get_prov_names(fit),
+        prov = c("overall", get_prov_names(fit)),
         deltar = exp(v),
         lwr = exp(v - 1.96*s),
         upr = exp(v + 1.96*s))
-        %>% dplyr::mutate(across(prov, forcats::fct_reorder, deltar))
+        %>% dplyr::mutate(across(prov, mk_order, deltar))
     )
+    return(deltar_data)
 }
 
 saveEnvironment()
