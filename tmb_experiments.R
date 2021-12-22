@@ -29,6 +29,7 @@ bsdat_bsfit <- tmb_fit(bsdat, betabinom_param = "log_sigma")
 bbmle::AICtab(btdat_btfit, btdat_bsfit)
 bbmle::AICtab(bsdat_btfit, bsdat_bsfit)
 ## why is theta fit better either way??
+## is bsfake using sigma*prob*(1-prob) (~ variance) or sigma/(prob*(1-prob)) (~ precision)?
 
 ## compare predictions?
 
