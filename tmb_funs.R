@@ -71,7 +71,9 @@ vcov.TMB <- function(x) {
 logLik.TMB <- function(x) {
 		## FIXME: include df? (length(coef(x)))?
 		## is x$fn() safe (uses last.par) or do we need last.par.best ?
-		return(-1*x$fn())
+    val <- -1*x$fn()
+    attr(val, "df") <- length(coef(x))
+		return(val)
 }
 
 print.TMB <- function(x) {
