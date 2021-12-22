@@ -9,7 +9,7 @@
 ### older/incomplete
 
 - `tmb_fit.R`/`tmb_eval.R`: parallel to `sgtmb*` above, but less piped
-- `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow
+- `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow (5-6 minutes)
 - `gen_funs.R`: more utility functions (not TMB-specific; currently unused)
 
 ## Description
@@ -31,24 +31,29 @@
    - ∃ logistfit methods: `predict()` (prediction, expanding prov × time)
    - TMB built-in functions: `fit$report()`, `TMB::sdreport(fit)`
    - `get_tmb_file(fit)`, `get_prov_names(fit)`, `get_data(fit)` retrieve carried-along info
+   - `get_deltar` gets the province-level values of deltar *and* the population-level estimate (`filter` it out if you don't want it ...)
 
 ## Random effects
 
-- at the 'observation' level (i.e. province × day), beta-binomial error and observation-level RE on the logit scale is approximately equivalent. B-B is probably slightly more robust (by analogy with lots of conversations about Gamma vs log-normal in count models, also something by Harrison [PeerJ?]). Logit-gaussian is better for transition to more sophisticated stuff like random-walk or autocorrelated noise ...
+- at the 'observation' level (i.e. province × day), beta-binomial error and observation-level RE on the logit scale is approximately equivalent. B-B is probably slightly more robust (by analogy with lots of conversations about Gamma vs log-normal in count models, also Harrison 2015 https://peerj.com/articles/1114). Logit-gaussian is better for transition to more sophisticated stuff like random-walk or autocorrelated noise ...
+    - JD comments that when we're doing reinfection, there are two observations per day (reinf/no reinf), so we could add another level of random effects
+	- does it make more sense to make everything Gaussian (on the appropriate scale) once we have multiple hierarchical scales?
+	- could compare goodness-of-fit of logit-Gaussian vs beta-binomial (different parameterizations ...)
 - random effects of `deltar` across province make perfect sense
 - random effects of `beta_reinf`? (What is the biology?) Should they be correlated with the deltar effects?
+- this will all be enough of a nuisance that we should think carefully about what we want/how much it matters before jumping in
 
 ## Current status
 
 - reasonable SG-only fits (no reinfection) to fake & real data, although questions remain about the details of the real-data fits [DIAGNOSTICS???]
 - fits with reinfection on fake data pass basic sanity checks
+- `tmb_ci_plot.Rout.pdf` results look fine for fake data (pipe to real data): uniroot and profile are approximately equally slow (? would expect uniroot to be a bit faster ?), nearly identical (as expected), only differ much from Wald for a few parameters
 
 ## Issues/to-do
 
 ### high priority
 
 - explore current results more
-- explore `tmb_ci.Rout` results (still a bit wonky?)
 - comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
 
 ### cosmetic/cleanup
@@ -74,9 +79,8 @@
 
 - break up `tmb_funs.R` ?
 - list of required packages/versions
-- see if we can skip binom fit as a preliminary stage
+- see if we can skip binom fit as a preliminary stage (`two_stage = FALSE`)
 - re-introduce possibility of loc random effect (without making code unreadable)???
-- include random effect of date? (alternative to beta-binomial ...) Stepping stone to an autocorrelated random effect
 - power exponential priors as in WNV project?
-- *Way* premature, but could parallelize some of the computations, both at the CI stage (via parapply) and internally (OpenMP)
+- *Way* premature, but could parallelize some more of the computations (internally via OpenMP, or by furrr::future_map*?)
  
