@@ -168,6 +168,7 @@ impmakeR += tmb_fit
 	$(pipeR)
 
 ## git mv sgtmb_eval.R tmb_eval.R
+##    git branch --set-upstream-to=origin/moredots
 
 ######################################################################
 
