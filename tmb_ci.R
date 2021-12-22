@@ -1,8 +1,13 @@
 library(shellpipes)
 library(broom.mixed)
-if (packageVersion("broom.mixed") < "0.2.9") stop("please install latest version of broom.mixed via remotes::install('bbolker/broom.mixed')")
+if (packageVersion("broom.mixed") < "0.2.9.1") stop("please install latest version of broom.mixed via remotes::install('bbolker/broom.mixed')")
 library(dplyr)
 library(TMB) ## still need it to operate on TMB objects
+
+## for parallel profiling
+library(furrr)
+library(future)
+future::plan(multicore, workers = min(parallel::detectCores()-1, 3))
 
 fit <- rdsRead()
 loadEnvironments()

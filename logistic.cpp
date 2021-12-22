@@ -24,6 +24,7 @@ Type objective_function<Type>::operator() ()
 	PARAMETER(lodrop);		  // log-odds of false negative for SGTF (universal)
 	PARAMETER(logain);		  // log-odds of false positive for SGTF (universal)
 	PARAMETER(log_theta);		  // log of theta (Beta dispersion parameter)
+	PARAMETER(log_sigma);		  // alternative beta dispersion parameter
 	PARAMETER(logsd_logdeltar);		   // SDs of {loc, deltar} REs
 
 	// PARAMETER_VECTOR(corr);	     // correlation among SDs (unused now since only 1 RE per block)
@@ -74,13 +75,14 @@ Type objective_function<Type>::operator() ()
 				    beta_reinf*reinf(i)
 				    );
 		// FIXME: revert to binomial when theta → ∞ (i.e. over a threshold) ?
-		if (notFinite(log_theta)) {
+		if (notFinite(log_theta) && notFinite(log_sigma)) {
 			// binomial (log_theta must use `map=` in MakeADFun ...
 			nll = -1*dbinom(Type(omicron(i)), Type(tot(i)), prob(i), true);
-		} else {
-			// beta-binomial
-
+		} else if (notFinite(log_sigma)) {
+			// beta-binomial, theta param
 			nll = -1*dbetabinom_theta(Type(omicron(i)), prob(i), exp(log_theta), Type(tot(i)), true);
+		} else {
+			nll = -1*dbetabinom_sigma(Type(omicron(i)), prob(i), exp(log_sigma), Type(tot(i)), true);
 		}
 		// copied from glmmTMB: not yet ...
 		// s3 = logit_inverse_linkfun(eta(i), link); // logit(p)

@@ -120,6 +120,7 @@ tmb_fit <- function(data,
 										two_stage = TRUE,
 										fixed_loc = TRUE,
 										reinf_effect = NULL,
+                    betabinom_param = c("log_theta", "log_sigma"),
 										start = list(log_deltar = log(0.1),
 																 lodrop = -4, logain = -7,
 																 beta_reinf = 0),
@@ -138,13 +139,13 @@ tmb_fit <- function(data,
 
 		data_vars <- c("prov", "time", "omicron", "tot", "reinf")
 
+    betabinom_param <- match.arg(betabinom_param)
 		if (! "beta_reinf" %in% names(start)) {
 				warning("please add beta_reinf to your starting parameter list (set to zero for back-compatibility)")
 				start$beta_reinf <- 0
 		}
 
-		## general (applies to both random- and fixed-loc models)
-		tmb_pars_binom <- c(start, list(log_theta = NA_real_))
+		tmb_pars_binom <- c(start, list(log_theta = NA_real_, log_sigma = NA_real_))
 		## make sure 'prov' is a factor (TMB doesn't auto-convert)
 		data$prov <- factor(data$prov)
 		has_reinf <- "reinf" %in% names(data)
@@ -189,7 +190,7 @@ tmb_fit <- function(data,
 											 ## inner.method = "BFGS",
 											 inner.control = list(maxit = 1000,
 																						fail.action = rep("warning", 3)),
-											 map = c(map, list(log_theta = factor(NA))),
+											 map = c(map, list(log_theta = factor(NA), log_sigma = factor(NA))),
 											 silent = TRUE)
 
 		if (two_stage) {
@@ -211,9 +212,14 @@ tmb_fit <- function(data,
 		## update binomial args for beta-binomial case
 		betabinom_args <- binom_args
 		## don't 'map' log_theta (dispersion) any more; set starting value to 0
-		betabinom_args$map$log_theta <- NULL
-		if (two_stage) betabinom_args$parameters <- splitfun(binom_args$parameters, tmb_binom_opt$par)
-		betabinom_args$parameters$log_theta <- 0
+    if (two_stage) betabinom_args$parameters <- splitfun(binom_args$parameters, tmb_binom_opt$par)
+    if (betabinom_param == "log_theta") {
+        betabinom_args$map$log_theta <- NULL
+        betabinom_args$parameters$log_theta <- 0
+    } else {
+        betabinom_args$map$log_sigma <- NULL
+        betabinom_args$parameters$log_sigma <- 0
+    }
 		tmb_betabinom <- do.call(MakeADFun, betabinom_args)
 		uvec <- Inf ## default: optim will replicate as necessary
 		if (!is.null(upper)) {

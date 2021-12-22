@@ -66,11 +66,19 @@ Type dbetabinom(Type y, Type a, Type b, Type n, int give_log=0)
 // logit(prob) (== eta) to log(prob)
 // = -log(exp(0) + exp(-eta)) =  -logspace_add(Type(0), -eta);
 template<class Type>
-Type dbetabinom_theta(Type y, Type prob, Type theta, Type n, int give_log=0)
+Type dbetabinom_sigma(Type y, Type prob, Type sigma, Type n, int give_log=0)
 {
-	Type x = theta; // (prob*(1-prob));
+	Type x = sigma*prob*(1-prob);
 	Type a = x*prob;
 	Type b = x*(1-prob);
+	return dbetabinom(y, a, b, n, give_log);
+}
+
+template<class Type>
+Type dbetabinom_theta(Type y, Type prob, Type theta, Type n, int give_log=0)
+{
+	Type a = theta*prob;
+	Type b = theta*(1-prob);
 	return dbetabinom(y, a, b, n, give_log);
 }
 
