@@ -1,5 +1,4 @@
 library(shellpipes)
-rpcall("tmb_fit.Rout tmb_fit.R btfake.sgts.rds logistic.so tmb_funs.rda")
 library(TMB)
 library(dplyr)
 
@@ -23,6 +22,7 @@ tt <- tmb_fit(data = s0,
                                 prior_params(lwr = log(0.01), upr = log(0.3))),
               map = list(),  ## no fixed params
               debug_level = 0
-              )
+)
+
 
 rdsSave(tt)

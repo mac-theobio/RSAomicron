@@ -1,3 +1,4 @@
+CONFLICT (content): Merge conflict in sgtmb_eval.R
 
 
 ## Beta formulations

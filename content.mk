@@ -82,9 +82,6 @@ ssfit.Rout: ssfit.R sgtf.props.rds betasigma.rda
 ssprofile.Rout: ssprofile.R ssfit.rda
 	$(pipeRcall)
 
-sstidy.Rout: sstidy.R ssfit.rda
-	$(pipeRcall)
-
 ## Unfinished!
 sstidyPlots.Rout: sstidyPlots.R sstidy.rds
 	$(pipeRcall)

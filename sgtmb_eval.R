@@ -119,5 +119,3 @@ gg2A <- (ggplot(deltar_data,
 
 ## boring for fake data! width of CIs >>  range of values
 print(gg2A + geom_pointrange(aes(xmin = lwr, xmax = upr)))
-
-                          

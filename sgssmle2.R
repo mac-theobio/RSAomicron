@@ -1,13 +1,9 @@
 library(bbmle)
 library(dplyr)
 library(emdbook)
-## FIXME: why do we need a seed here? Are we doing anything non-deterministic?
-## Is optim never stochastic?
 set.seed(1200)
 
 library(shellpipes)
-rpcall("btfake.sgssmle2.Rout sgssmle2.R btfake.sgts.props.rds betatheta.rda")
-
 
 dat <- rdsRead()
 loadEnvironments()
@@ -18,11 +14,9 @@ summary(dat)
 ## Consider: look at other b-b parameterizations
 
 bbsizemax <- 100
-
 ## Iterate until convergence
 cList = list(maxit = 5000)
 
-## FIXME: move to a utils file?
 ## Logistic function with imperfect testing
 baselogis <- function(tvec, loc, delta_r, lodrop, logain){
 	drop <- plogis(lodrop)
@@ -32,47 +26,54 @@ baselogis <- function(tvec, loc, delta_r, lodrop, logain){
 	return(ptrue*(1-gain) + (1-ptrue)*drop)
 }
 
-bbfit <- function(dat, curr){
-	print(c("Starting", curr))
-	provdat <- (dat
-		%>% filter(prov==curr)
-		%>% select(time, omicron, tot)
-	)
-	## Initial guesses (do we need to do this by province)
-	sbin <- list(loc = mean(provdat$time), delta_r = 1, lodrop=-3, logain=-6)
-	sbbin <- c(sbin, lbbsize=0)
+doublefit <- function(
+	dat, fun, fixed
+	, first="Nelder-Mead", second="BFGS", verbose=FALSE, ...
+){
+	m <- fun(dat=dat, method=first, fixed=fixed, ...)
+	if(verbose){
+		print("Base fit")
+		print(coef(m))
+	}
+	if(is.null(m)) return(m)
+	return(update(m, start = as.list(coef(m)), method = second))
+}
 
-	## Preliminary N-M fit
-	m0 <- mle2(
+ssbetafit <- function(dat
+	, start = list(
+		loc = NULL, delta_r = 1 , lodrop=-4, logain=-7 , lbbsize=0
+	)
+	, method = "Nelder-Mead"
+	, printCoef=FALSE
+	, fixed
+	, cList = list(maxit = 5000)
+){
+	if (is.null(start[["loc"]])) start[["loc"]] <- mean(dat$time)
+	return(mle2(
 		omicron ~ dbetabinom_shape(
 			prob = baselogis(time, loc, delta_r, lodrop, logain)
 			, size = tot
 			, shape = exp(lbbsize)
 		) 
-		, start = sbbin, data = provdat, method = "Nelder-Mead"
-		, fixed = fixList, control = cList
-	)
-
-	print("Base fit")
-	print(coef(m0))
-	if (coef(m0)[["lbbsize"]] > log(bbsizemax)) return(NULL)
-
-	## BFGS is better for profiling (fit should be very similar)
-	m <- update(m0, start = as.list(coef(m0)), method = "BFGS")
-
-	print("Final updated fit with CIs)")
-	print(coef(m))
-	ci <- try(confint(m))
-	if (!inherits(ci, "matrix")) return(NULL)
-	print(ci)
-   if(anyNA(ci["delta_r", ])) return(NULL)
-	return(list(m=m, ci=ci))
+		, start = start, data = dat, method = method
+		, fixed = fixed, control = cList
+	))
 }
 
-provlist <- dat %>% pull(prov) %>% unique()
+
+provlist <- dat %>% pull(prov) %>% unique
 fitlist <- list()
 for (cp in provlist){
-	fitlist[[cp]] <- bbfit(dat, cp)
+	print(c("Starting", cp))
+	fitlist[[cp]] <- doublefit(
+		dat = dat  %>% filter(prov == cp)
+		, fun = ssbetafit
+		, fixed=fixList
+		, verbose=TRUE
+	)
+	print(coef(fitlist[[cp]]))
 }
 
 saveVars(baselogis, fitlist)
+
+
