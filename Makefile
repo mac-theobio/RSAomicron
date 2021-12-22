@@ -115,7 +115,7 @@ main.sgts.props.rds: sgtf_ref.chop2.sgts.props.rds
 
 ######################################################################
 
-## beta formulations
+## beta formulations for fake data
 
 ## Standard "theta" formulation θ = a + b
 .PRECIOUS: %.bt.rds
@@ -151,24 +151,8 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
-## Deprecated; move down to next section 2021 Dec 21 (Tue)
-
-tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic.so tmb_funs.rda
-
 %.sgrtmb.Rout: sgtmb.R %.sgts.props.rds logistic.so tmb_funs.rda
 	$(pipeR)
-
-
-tmb_eval.Rout: tmb_eval.R tmb_fit.rds logistic.so tmb_funs.rda
-
-## quite obsolete now
-## tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgs.rds tmb_funs.rda
-
-tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda logistic.so
-
-tmb_ci_plot.Rout: tmb_ci_plot.R tmb_ci.rds
-
-tmb_stan.Rout: tmb_stan.R tmb_fit.rds tmb_funs.rda
 
 ######################################################################
 
@@ -209,7 +193,7 @@ impmakeR += sgtmb
 
 ######################################################################
 
-## Beta fitting
+## Beta fitting choice for mle pipeline
 
 impmakeR += btfit.sgts
 %.btfit.sgts.Rout: parms.R %.sgts.props.rds betatheta.rda
@@ -221,7 +205,7 @@ impmakeR += bsfit.sgts
 
 ######################################################################
 
-## Parameters to fix
+## Choosing fixed params for mle pipeline
 impmakeR += ssfix.sgts
 %.ssfix.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfix.rda
 	$(pipeR)
@@ -242,14 +226,8 @@ impmakeR += ssfitboth.sgts
 ## bsfake.btfit.ssfitspec.sgssmle2.Rout: sgssmle2.R
 ## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 ## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
-## FIXME rda/rds logic
-## FIXME doublefit stuff
 impmakeR += sgssmle2
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds %.sgts.rda ssfitfuns.rda
-	$(pipeR)
-
-## Compare two weird pipelines
-%.sgssmle3.Rout: sgssmle3.R %.sgts.props.rds %.sgts.rda
 	$(pipeR)
 
 ######################################################################
@@ -257,12 +235,14 @@ impmakeR += sgssmle2
 ## A standard fit for comparing to the tmb fit
 ## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 ## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
-comp_fit.sgssmle2.rda: main.btfit.ssfitboth.sgssmle2.rda
+comp_fit.sgssmle2.rds: main.btfit.ssfitboth.sgssmle2.rds
 	$(forcelink)
 
-## Tidy and make plots
+## Tidy (Quick and dirty Wald intervals)
 ## comp_fit.mle2tidy.Rout: mle2tidy.R
-%.mle2tidy.Rout: mle2tidy.R %.sgssmle2.rda
+## main.btfit.ssfitboth.mle2tidy.Rout: mle2tidy.R
+## main.bsfit.ssfitboth.mle2tidy.Rout: mle2tidy.R
+%.mle2tidy.Rout: mle2tidy.R %.sgssmle2.rds ssfitfuns.rda
 	$(pipeR)
 
 ######################################################################

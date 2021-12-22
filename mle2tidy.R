@@ -4,14 +4,18 @@ library(dplyr)
 ## library(emdbook)
 
 library(shellpipes)
-loadEnvironments()
 
-print(names(fitlist))
+fitlist <- rdsRead()
+loadEnvironments()
 
 coefdf <- (names(fitlist)
 	%>% lapply(function(p){
-		mod <- fitlist[[p]][["m"]]
-		cc <- fitlist[[p]][["ci"]]
+		mod <- fitlist[[p]]$m
+		cc <-  fitlist[[p]]$wi
+		print(p)
+		print(summary(cc))
+		return(class(cc))
+		if (is.null(cc)) return(NULL)
 		dd <- (as.data.frame(cc)
 		  %>% mutate(prov = p
 			  , param = rownames(.)
@@ -26,7 +30,9 @@ coefdf <- (names(fitlist)
 		)
 		return(left_join(dd,coefdat))
 	})
-) %>% bind_rows
+) ## %>% bind_rows
 
 print(coefdf)
 rdsSave(coefdf)
+
+warnings()

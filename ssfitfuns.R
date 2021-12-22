@@ -9,65 +9,52 @@ baselogis <- function(tvec, loc, delta_r, lodrop, logain){
 	return(ptrue*(1-gain) + (1-ptrue)*drop)
 }
 
-betabinfit <- function(dat
+doublefit <- function(
+	dat, fun, fixed
+	, first="Nelder-Mead", second="BFGS", verbose=FALSE
+	, wald=FALSE, profile=FALSE
+	, ...
+){
+	m <- fun(dat=dat, method=first, fixed=fixed, ...)
+	if(verbose){
+		print("Base fit")
+		print(coef(m))
+	}
+	if(is.null(m)) return(m)
+	m <- update(m, start = as.list(coef(m)), method = second)
+	wi <- NULL
+	if(wald){
+		wt <- try(confint(m, type="quad"))
+		if (inherits(wt, "matrix")) wi <- wt
+		wi <- wt
+	}
+	pi <- NULL
+	if(profile){
+		pt <- try(confint(m))
+		if (inherits(pt, "matrix")) pi <- pt
+	}
+	return(list(m=m, wi=wi, pi=pi))
+}
+
+ssbetafit <- function(dat
 	, start = list(
 		loc = NULL, delta_r = 1 , lodrop=-4, logain=-7 , lbbsize=0
 	)
-	, betasizemax=100
-	, printCoef=FALSE
 	, method = "Nelder-Mead"
-	, fixList = fixList
+	, printCoef=FALSE
+	, fixed
 	, cList = list(maxit = 5000)
 ){
 	if (is.null(start[["loc"]])) start[["loc"]] <- mean(dat$time)
-
-	m <- mle2(
+	return(mle2(
 		omicron ~ dbetabinom_shape(
 			prob = baselogis(time, loc, delta_r, lodrop, logain)
 			, size = tot
 			, shape = exp(lbbsize)
 		) 
 		, start = start, data = dat, method = method
-		, fixed = fixList, control = cList
-	)
-
-	if (printCoef) print(coef(m))
-	if (
-		(!is.null(betasizemax)) & (coef(m)[["lbbsize"]] > log(betasizemax))
-	) return(NULL)
-
-	return(m)
-}
-
-## Use one method to hopefully get a good estimate and a second to make something more profile-able
-doublefit <- function(
-	dat, fun, first="Nelder-Mead", second="BFGS", verbose=FALSE, ...
-){
-	m <- fun(dat=dat, method=first, ...)
-	if(verbose){
-		print("Base fit")
-		print(coef(m))
-	}
-	if(is.null(m)) return(m)
-	return(update(m, start = as.list(coef(m)), method = second))
-}
-
-## Not working bc we can't reverse-engineer the methods
-tryCI <- function(m, method="spline", printCI=FALSE){
-	ci <- try(confint(m, method=method))
-	if (!inherits(ci, "matrix")) return(NULL)
-	if (printCI) print(ci)
-   if(anyNA(ci["delta_r", ])) return(NULL)
-	return(ci=ci)
-}
-
-## Can we get legal CIs??
-checkCI <- function(m, printCI=FALSE){
-	s <- tryCI(m, printCI=printCI)
-	if (!is.null(s)) return("profile")
-	s <- tryCI(m, printCI, method="quad")
-	if (!is.null(s)) return("Wald")
-	return(NULL)
+		, fixed = fixed, control = cList
+	))
 }
 
 saveEnvironment()
