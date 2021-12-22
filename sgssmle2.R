@@ -21,6 +21,7 @@ cList = list(maxit = 5000)
 provlist <- dat %>% pull(prov) %>% unique
 fitlist <- list()
 for (cp in provlist){
+	print(cp)
 	fit <- doublefit(
 		dat = dat %>% filter(prov == cp)
 		, fun = betabinfit
@@ -36,5 +37,4 @@ print(fitlist)
 
 print(names(fitlist))
 
-saveVars(baselogis, fitlist)
-
+rdsSave(fitlist)

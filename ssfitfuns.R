@@ -40,8 +40,14 @@ betabinfit <- function(dat
 }
 
 ## Use one method to hopefully get a good estimate and a second to make something more profile-able
-doublefit <- function(dat, fun, first="Nelder-Mead", second="BFGS", ...){
+doublefit <- function(
+	dat, fun, first="Nelder-Mead", second="BFGS", verbose=FALSE, ...
+){
 	m <- fun(dat=dat, method=first, ...)
+	if(verbose){
+		print("Base fit")
+		print(coef(m))
+	}
 	if(is.null(m)) return(m)
 	return(update(m, start = as.list(coef(m)), method = second))
 }

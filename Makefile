@@ -233,10 +233,15 @@ impmakeR += sgssmle2
 %.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds %.sgts.rda ssfitfuns.rda
 	$(pipeR)
 
+## Compare two weird pipelines
+%.sgssmle3.Rout: sgssmle3.R %.sgts.props.rds %.sgts.rda
+	$(pipeR)
+
 ######################################################################
 
 ## A standard fit for comparing to the tmb fit
-## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
+## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
+## main.bsfit.ssfitboth.sgssmle3.Rout: sgssmle2.R
 comp_fit.sgssmle2.rda: main.btfit.ssfitboth.sgssmle2.rda
 	$(forcelink)
 
