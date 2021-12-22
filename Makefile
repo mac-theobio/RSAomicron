@@ -144,9 +144,9 @@ impmakeR += fake
 %.fake.Rout: bbinfake.R %.rda %.rds
 	$(pipeR)
 
-bsfake.sr.ts.rds: outputs/main.sr.ts.bs.fake.rds
+bsfake.sr.agg.rds: outputs/main.sr.ts.bs.fake.rds
 	$(forcelink)
-btfake.sr.ts.rds: outputs/main.sr.ts.bt.fake.rds
+btfake.sr.agg.rds: outputs/main.sr.ts.bt.fake.rds
 	$(forcelink)
 
 ######################################################################
@@ -167,24 +167,12 @@ impmakeR += tmb_fit
 %.tmb_fit.Rout: tmb_fit.R %.ts.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
-## git mv sgtmb_eval.R tmb_eval.R
-##    git branch --set-upstream-to=origin/moredots
-
 ######################################################################
 
-## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb_eval.R tmb_funs.R
-%.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda logistic.so
-	$(pipeR)
-
-## fit using data/model with reinfection
-## refactor? these are repeated from the sgtmb rules above,
-##  only change is sgts -> srts, sgtmb -> srtmb
-##  primary code files are identical/smart enough to know what they're getting
-%.srtmb.Rout: sgtmb.R %.sr.ts.rds logistic.so tmb_funs.rda
-	$(pipeR)
-
-## btfake.srtmb_eval.Rout: sgtmb_eval
-%.srtmb_eval.Rout: sgtmb_eval.R %.srtmb.rds logistic.so tmb_funs.rda
+## bsfake.sg.tmb_eval.Rout: tmb_eval.R tmb_funs.R
+## bsfake.sr.tmb_eval.Rout: tmb_eval.R tmb_funs.R
+## sgtf_ref.chop2.sg.tmb_eval.Rout: tmb_eval.R tmb_funs.R
+%.tmb_eval.Rout: tmb_eval.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ## get ensemble (MVN sampling distribution)
