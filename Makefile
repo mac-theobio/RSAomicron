@@ -241,7 +241,7 @@ impmakeR += sgssmle2
 
 ## A standard fit for comparing to the tmb fit
 ## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
-## main.bsfit.ssfitboth.sgssmle3.Rout: sgssmle2.R
+## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 comp_fit.sgssmle2.rda: main.btfit.ssfitboth.sgssmle2.rda
 	$(forcelink)
 
