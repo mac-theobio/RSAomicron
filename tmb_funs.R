@@ -349,4 +349,18 @@ uses_reinf <- function(fit) {
     !"beta_reinf" %in% names(fit$env$map)
 }
 
+get_deltar <- function(fit) {
+    rr <- sdreport_split(fit)
+    v <- rr$value$log_deltar_vec
+    s <- rr$sd$log_deltar_vec
+    deltar_data <- (tibble::tibble(
+        prov = get_prov_names(fit),
+        deltar = exp(v),
+        lwr = exp(v - 1.96*s),
+        upr = exp(v + 1.96*s))
+        %>% dplyr::mutate(across(prov, forcats::fct_reorder, deltar))
+    )
+}
+
 saveEnvironment()
+
