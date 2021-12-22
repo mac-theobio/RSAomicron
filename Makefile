@@ -71,7 +71,7 @@ Sources += $(wildcard *.dict.tsv)
 ## FIXME: does order-only rule do this better than $(MAKE)?
 data/sgtf_ref.rds:
 	$(MAKE) data
-sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
+sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 	$(pipeR)
 
 ## No other current sources
@@ -81,39 +81,36 @@ sgtf_ref.srll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv
 
 ## Aggregating into time series
 
-impmakeR += srts
+impmakeR += sr.agg
 ## simDates is for zeroDate
-%.srts.Rout: sr_agg.R %.srll.rds simDates.rda
+%.sr.agg.Rout: sr_agg.R %.sr.ll.rds simDates.rda
 	$(pipeR)
 
-## FIXME: ⇒ sg.ts (etc.)
-## Aggregate across reinf for sg
-impmakeR += sgts
-%.sgts.Rout: sgtf_agg.R %.srts.rds
+impmakeR += sg.agg
+%.sg.agg.Rout: sgtf_agg.R %.sr.agg.rds
 	$(pipeR)
 
 ######################################################################
 
 ## Date stuff
 
-impmakeR += chop2.srts
-%.chop2.srts.Rout: chop2.R %.srts.rds
+impmakeR += chop2.sr.agg
+%.chop2.sr.agg.Rout: chop2.R %.sr.agg.rds
 	$(pipeR)
 
 ######################################################################
 
 ## Proportion calculations
 
-impmakeR += props
-%.props.Rout: props.R %.rds
+impmakeR += ts
+%.ts.Rout: ts.R %.agg.rds
 	$(pipeR)
 
-## FIXME simpler name for ts.props (tsfull?)
-## sgtf_ref.srts.chop2.props.Rout:
-main.srts.props.rds: sgtf_ref.srts.chop2.props.rds
+## sgtf_ref.chop2.sr.ts.Rout:
+main.sr.ts.rds: sgtf_ref.chop2.sr.ts.rds
 	$(forcelink)
 
-main.sgts.props.rds: sgtf_ref.chop2.sgts.props.rds
+main.sg.ts.rds: sgtf_ref.chop2.sg.ts.rds
 	$(forcelink)
 
 ######################################################################
@@ -140,26 +137,23 @@ main.sgts.props.rds: sgtf_ref.chop2.sgts.props.rds
 
 ## Fake data
 
-## main.srts.bs.fake.Rout main.srts.bt.fake.Rout
-pushfake: main.srts.bs.fake.rds.op main.srts.bt.fake.rds.op
+## main.sr.ts.bs.fake.Rout:
+pushfake: main.sr.ts.bs.fake.rds.op main.sr.ts.bt.fake.rds.op
 
 impmakeR += fake
 %.fake.Rout: bbinfake.R %.rda %.rds
 	$(pipeR)
 
-bsfake.srts.rds: outputs/main.srts.bs.fake.rds
+bsfake.sr.ts.rds: outputs/main.sr.ts.bs.fake.rds
 	$(forcelink)
-btfake.srts.rds: outputs/main.srts.bt.fake.rds
+btfake.sr.ts.rds: outputs/main.sr.ts.bt.fake.rds
 	$(forcelink)
 
 ######################################################################
 
-%.sgrtmb.Rout: tmb_fit.R %.sgts.props.rds logistic.so tmb_funs.rda
-	$(pipeR)
+## TMB model
 
-######################################################################
-
-## Compile a TMB model
+## Compile 
 
 Sources += logistic.cpp logistic_fit.h
 Ignore += logistic.so logistic.o
@@ -167,11 +161,15 @@ logistic.so: logistic.cpp logistic_fit.h
 	touch $<
 	Rscript --vanilla -e "TMB::compile('$<')"
 
-impmakeR += sgtmb
-## btfake.sgtmb.Rout: sgtmb.R tmb_funs.R
-## sgtf_ref.chop2.sgtmb.Rout: sgtmb.R tmb_funs.R
-%.sgtmb.Rout: sgtmb.R %.sgts.props.rds logistic.so tmb_funs.rda
+## Fit
+
+impmakeR += tmb_fit
+%.tmb_fit.Rout: tmb_fit.R %.ts.rds logistic.so tmb_funs.rda
 	$(pipeR)
+
+## git mv sgtmb_eval.R tmb_eval.R
+
+######################################################################
 
 ## sgtf_ref.chop2.sgtmb_eval.Rout: sgtmb_eval.R tmb_funs.R
 %.sgtmb_eval.Rout: sgtmb_eval.R %.sgtmb.rds tmb_funs.rda logistic.so
@@ -181,7 +179,7 @@ impmakeR += sgtmb
 ## refactor? these are repeated from the sgtmb rules above,
 ##  only change is sgts -> srts, sgtmb -> srtmb
 ##  primary code files are identical/smart enough to know what they're getting
-%.srtmb.Rout: sgtmb.R %.srts.props.rds logistic.so tmb_funs.rda
+%.srtmb.Rout: sgtmb.R %.sr.ts.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
 ## btfake.srtmb_eval.Rout: sgtmb_eval
@@ -198,27 +196,27 @@ impmakeR += sgtmb
 
 ## Beta fitting choice for mle pipeline
 
-impmakeR += btfit.sgts
-%.btfit.sgts.Rout: parms.R %.sgts.props.rds betatheta.rda
+impmakeR += btfit.sg.ts
+%.btfit.sg.ts.Rout: parms.R %.sg.ts.rds betatheta.rda
 	$(pipeR)
 
-impmakeR += bsfit.sgts
-%.bsfit.sgts.Rout: parms.R %.sgts.props.rds betasigma.rda
+impmakeR += bsfit.sg.ts
+%.bsfit.sg.ts.Rout: parms.R %.sg.ts.rds betasigma.rda
 	$(pipeR)
 
 ######################################################################
 
 ## Choosing fixed params for mle pipeline
-impmakeR += ssfix.sgts
-%.ssfix.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfix.rda
+impmakeR += ssfix.sg.ts
+%.ssfix.sg.ts.Rout: parms.R %.sg.ts.rda %.sg.ts.rds ssfix.rda
 	$(pipeR)
 
-impmakeR += ssfitspec.sgts
-%.ssfitspec.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfitspec.rda
+impmakeR += ssfitspec.sg.ts
+%.ssfitspec.sg.ts.Rout: parms.R %.sg.ts.rda %.sg.ts.rds ssfitspec.rda
 	$(pipeR)
 
-impmakeR += ssfitboth.sgts
-%.ssfitboth.sgts.Rout: parms.R %.sgts.rda %.sgts.rds ssfitboth.rda
+impmakeR += ssfitboth.sg.ts
+%.ssfitboth.sg.ts.Rout: parms.R %.sg.ts.rda %.sg.ts.rds ssfitboth.rda
 	$(pipeR)
 
 ######################################################################
@@ -230,7 +228,7 @@ impmakeR += ssfitboth.sgts
 ## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 ## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 impmakeR += sgssmle2
-%.sgssmle2.Rout: sgssmle2.R %.sgts.props.rds %.sgts.rda ssfitfuns.rda
+%.sgssmle2.Rout: sgssmle2.R %.sg.ts.rds %.sg.ts.rda ssfitfuns.rda
 	$(pipeR)
 
 ######################################################################
@@ -253,7 +251,7 @@ comp_fit.sgssmle2.rds: main.btfit.ssfitboth.sgssmle2.rds
 ## Experiments
 
 ## each of bt/bs paradigm fits its own fake data better 2021 Dec 22 (Wed)
-btcompare.Rout: btcompare.R btfake.sgts.props.rds bsfake.sgts.props.rds tmb_funs.rda logistic.so
+btcompare.Rout: btcompare.R btfake.sg.ts.rds bsfake.sg.ts.rds tmb_funs.rda logistic.so
 
 ######################################################################
 
