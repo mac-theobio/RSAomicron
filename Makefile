@@ -154,7 +154,7 @@ btfake.srts.rds: outputs/main.srts.bt.fake.rds
 
 ######################################################################
 
-%.sgrtmb.Rout: tmbfit.R %.sgts.props.rds logistic.so tmb_funs.rda
+%.sgrtmb.Rout: tmb_fit.R %.sgts.props.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
 ######################################################################
