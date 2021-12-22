@@ -159,7 +159,8 @@ tmb_fit.Rout: tmb_fit.R btfake.sgts.rds logistic.so tmb_funs.rda
 
 tmb_eval.Rout: tmb_eval.R tmb_fit.rds logistic.so tmb_funs.rda
 
-tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgs.rds tmb_funs.rda
+## quite obsolete now
+## tmb_diagnose.Rout: tmb_diagnose.R tmb_fit.rda btfake.sgs.rds tmb_funs.rda
 
 tmb_ci.Rout: tmb_ci.R tmb_fit.rds tmb_funs.rda logistic.so
 
