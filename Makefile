@@ -212,6 +212,9 @@ impmakeR += ssfitboth.sg.ts
 ## mle2 fitting
 
 ## btfake.btfit.ssfix.sgssmle2.Rout: sgssmle2.R
+## 'btfake' = simulate with theta;
+## 'btfit' = fit with theta;
+## 'ssfitboth' = fit both drop and gain
 ## bsfake.btfit.ssfitspec.sgssmle2.Rout: sgssmle2.R
 ## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
 ## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
