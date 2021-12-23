@@ -9,7 +9,8 @@ Type objective_function<Type>::operator() ()
 	DATA_FACTOR(prov);
 	DATA_IVECTOR(time);       // time
 	DATA_INTEGER(nprov);		  // num provinces: should compute from data?
-	DATA_IVECTOR(omicron);	  // number of recorded SGTF dropouts
+	DATA_VECTOR(omicron);	  // number of recorded SGTF dropouts
+	// (make this float rather than int so that we can use TMB's rbinom() in simulation step)
 	DATA_IVECTOR(tot);  // number of confirmed cases
 	DATA_VECTOR(reinf); // reinfections, possibly NA (in which case param will be mapped to 0)
 	DATA_INTEGER(debug);		  // debugging flag
@@ -90,7 +91,7 @@ Type objective_function<Type>::operator() ()
 		// s2 = log_inverse_linkfun(-s3, logit_link) + log(phi(i)); // s2 = log((1-mu)*phi)
 		// tmp_loglik = glmmtmb::dbetabinom_robust(yobs(i), s1, s2, size(i), true);
 		SIMULATE {
-			yobs(i) = rbetabinom_theta(tot(i), prob(i), exp(log_sigma));
+			omicron(i) = rbetabinom_theta(Type(tot(i)), prob(i), exp(log_theta));
 		}
 
 		res += nll;
@@ -124,7 +125,11 @@ Type objective_function<Type>::operator() ()
 	
 	REPORT(prob);
 	REPORT(log_deltar_vec);
-	// sdreport() will actually have both value and sd
+	SIMULATE{
+		REPORT(omicron);
+	}
+	
+	// sdreport() will give both value and sd
 	// report log-odds of prob so we can get (Wald) CIs on the logit scale
 	vector<Type> loprob = logit(prob);
 

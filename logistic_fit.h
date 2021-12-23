@@ -75,12 +75,13 @@ Type dbetabinom_theta(Type y, Type prob, Type theta, Type n, int give_log=0)
 }
 
 
-int rbetabinom_theta(int n, Type prob, Type theta)
+template<class Type>
+Type rbetabinom_theta(Type n, Type prob, Type theta)
 {
 	Type a = theta*prob;
 	Type b = theta*(1-prob);
 	return rbinom(n, rbeta(a, b));
- }
+}
 
 namespace adaptive {
 	template<class T>

@@ -182,7 +182,10 @@ impmakeR += tmb_fit
 %.tmb_ci.Rout: tmb_ci.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
-%.tmb_ci.Rout: tmb_ci_plot.R %.tmb_ci.rds tmb_funs.rda logistic.so
+%.tmb_ci_plot.Rout: tmb_ci_plot.R %.tmb_ci.rds tmb_funs.rda logistic.so
+	$(pipeR)
+
+%.tmb_ensemble.Rout: tmb_ensemble.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ## get ensemble (MVN sampling distribution)
