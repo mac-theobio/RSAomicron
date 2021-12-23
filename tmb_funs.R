@@ -381,5 +381,9 @@ get_deltar <- function(fit) {
     return(deltar_data)
 }
 
+## helper function for purrr::map_dfr with .id; sets a vector's names to itself
+self_named <- function(x) {
+    setNames(x,x)
+}
 saveEnvironment()
 

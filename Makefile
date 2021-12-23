@@ -175,6 +175,10 @@ impmakeR += tmb_fit
 %.tmb_eval.Rout: tmb_eval.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
+## compare fixed, RE, pooled
+%.tmb_fit_compare.Rout: tmb_fit_compare.R %.ts.rds logistic.so tmb_funs.rda
+	$(pipeR)
+
 ## get ensemble (MVN sampling distribution)
 ## 
 ## pop_vals <- MASS::mvrnorm(1000,
