@@ -8,7 +8,6 @@ On the SG side, I've done some of the archaeology about old fits, and I'm not th
 
 Li: I went back to omike and figured out what we did with Carl and I was able to replicate it. We did not use ssbetabinomial for P1. We used ssbin. To recreate, make ssbin.Rout, ssbintidy.Rout, and ssbinsimplot.Rout 
 
-
 We need to decide whether to consider using the non-standard beta binomial parameterization, and if we consider it, we need to decide the criteria that will use to pick between it and the standard parameterization.
 
 On the SR side, we additionally need to decide about whether to add a random effect for province by date.
@@ -22,3 +21,25 @@ We're not currently worried about reinfection denominators because our model ask
 
 Do we need two Dropboxes? What is the starting data for what?
 
+## Meeting
+
+Data and pipeline
+* Carl will work to help the Canadians use his repo
+
+We are not immediately throwing out either beta formulation
+* Maybe do an AIC comparison
+* Maybe postpone?
+
+What about the ensembles?
+* Early ensembles use just binomial 
+* If we switch to beta-binomial we should use whatever formulation we've decided to use
+* postpone
+
+Random effects
+* Current model: sgtf ~ time + province + (time|province) + reinf
+* Maximal model: . + (1|timef) + (reinf|province)
+* Extra intermediate: replace timef with a spline
+
+Data selection
+
+Ahead by a fixed time is equivalent to ahead by a fixed amount on this scale
