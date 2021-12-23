@@ -74,6 +74,14 @@ Type dbetabinom_theta(Type y, Type prob, Type theta, Type n, int give_log=0)
 	return dbetabinom(y, a, b, n, give_log);
 }
 
+
+int rbetabinom_theta(int n, Type prob, Type theta)
+{
+	Type a = theta*prob;
+	Type b = theta*(1-prob);
+	return rbinom(n, rbeta(a, b));
+ }
+
 namespace adaptive {
 	template<class T>
 	T logspace_gamma(const T &x) {

@@ -89,9 +89,9 @@ Type objective_function<Type>::operator() ()
 		// s1 = log_inverse_linkfun( s3, logit_link) + log(phi(i)); // s1 = log(mu*phi)
 		// s2 = log_inverse_linkfun(-s3, logit_link) + log(phi(i)); // s2 = log((1-mu)*phi)
 		// tmp_loglik = glmmtmb::dbetabinom_robust(yobs(i), s1, s2, size(i), true);
-		// SIMULATE {
-		//   yobs(i) = rbinom(size(i), rbeta(exp(s1), exp(s2)) );
-		// }
+		SIMULATE {
+			yobs(i) = rbetabinom_theta(tot(i), prob(i), exp(log_sigma));
+		}
 
 		res += nll;
 		if (debug > 5) {
