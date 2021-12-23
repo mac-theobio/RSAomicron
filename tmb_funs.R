@@ -57,13 +57,14 @@ coef.TMB <- function(x, random = FALSE) {
 		}
 		return(r)
 }
-vcov.TMB <- function(x) {
+vcov.TMB <- function(x, random = FALSE) {
 		if (!require("numDeriv")) stop('need numDeriv package for TMB vcov')
+    cc <- coef(x, random = random)
 		H <- numDeriv::jacobian(func = x$gr,
-														x = coef(x))
+														x = cc)
 		## fixme: robustify?
 		V <- solve(H)
-		nn <- names(coef(x))
+		nn <- names(cc)
 		dimnames(V) <- list(nn,nn)
 		return(V)
 }
@@ -131,7 +132,8 @@ tmb_fit <- function(data,
 																			prior_params(log(0.01), log(0.3))),
 										map = list(),
 										debug_level = 0,
-										tmb_file = NULL)
+										tmb_file = NULL,
+                    include_sdr = FALSE)
 {
 		if(!is.null(tmb_file)) {
 				TMB::compile(paste0(tmb_file, ".cpp"))
@@ -244,7 +246,7 @@ tmb_fit <- function(data,
 																		upper = uvec,
 																		lower = lvec)
 															)
-		return(mklogistfit(tmb_betabinom, tmb_file, get_names(data$prov)))
+		return(mklogistfit(tmb_betabinom, tmb_file, get_names(data$prov), include_sdr = include_sdr))
 }
 
 ## extract original data frame from TMB object
@@ -260,14 +262,22 @@ get_data <- function(x) {
 }
 
 
-## add class and file attributes
+##' add class and file attributes
+##' @param x fitted TMB object
+##' @param tmb_file name of tmb file (without extension) used in fitting
+##' @param prov_names (character vector) province names
+##' @param include_sdr include sdreport as an attribute (could save time downstream) ?
 ## FIXME: what should the class be called?
-mklogistfit <- function(x, tmb_file, prov_names) {
+
+mklogistfit <- function(x, tmb_file, prov_names, include_sdr = FALSE) {
 		attr(x, "tmb_file") <- tmb_file
 		attr(x, "prov_names") <- prov_names
 		## fix up province name vector
 		x$env$last.par.best <- fix_prov_names(x$env$last.par.best,
 																					prov_names)
+    if (include_sdr) {
+        attr(x, "sdr") <- sreport(x)
+    }
 		class(x) <- c("logistfit", "TMB")
 		return(x)
 }
@@ -288,51 +298,64 @@ get_prov_names <- function(x) {
 ##' @param fit a fitted model
 ##' @param newdata data frame for prediction (should include province, time, reinf(?)
 ##' @param include_reinf expand prediction frame over reinfection status?
-predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fit)) {
+predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fit),
+                              newparams = NULL, simulate = FALSE) {
 		e2 <- copyEnv(environment(fit$fn))
 		pred_bb <- fit
 		environment(pred_bb$fn) <- environment(pred_bb$gr) <-
 				environment(pred_bb$report) <- pred_bb$env <- e2
-		if (is.null(newdata)) {
-        dd0 <- get_data(fit)
-        args <- with(dd0, list(prov = unique(prov), time = unique(time)))
-        if (uses_reinf(fit)) {
-            args <- c(args, list(reinf = 0:1))
+    ## deal with newdata (if any)
+    if (!is.na(newdata)) {
+        if (is.null(newdata)) {
+            dd0 <- get_data(fit)
+            args <- with(dd0, list(prov = unique(prov), time = unique(time)))
+            if (uses_reinf(fit)) {
+                args <- c(args, list(reinf = 0:1))
+            }
+            newdata <- do.call(expand.grid, args)
         }
-				newdata <- do.call(expand.grid, args)
-		}
-		n <- nrow(newdata)
-		dd <- fit$env$data ## all data
-		for (nm in names(dd)) {
-				if (nm %in% names(newdata)) {
-						dd[[nm]] <- newdata[[nm]]
-				} else {
-						L <- length(dd[[nm]])
-						if (L > 1 && L < nrow(newdata)) {
-                if (nm == "reinf") {
-                    ## model uses reinf, but include_reinf not specified
-                    if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")
-                    dd[[nm]] <- rep(0, nrow(newdata))
-                } else {
-                    ## other variables aren't used (we think)
-                    dd[[nm]] <- rep(NA_real_, nrow(newdata))
+        n <- nrow(newdata)
+        dd <- fit$env$data ## all data
+        for (nm in names(dd)) {
+            if (nm %in% names(newdata)) {
+                dd[[nm]] <- newdata[[nm]]
+            } else {
+                L <- length(dd[[nm]])
+                if (L > 1 && L < nrow(newdata)) {
+                    if (nm == "reinf") {
+                        ## model uses reinf, but include_reinf not specified
+                        if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")
+                        dd[[nm]] <- rep(0, nrow(newdata))
+                    } else {
+                        ## other variables aren't used (we think)
+                        dd[[nm]] <- rep(NA_real_, nrow(newdata))
+                    }
                 }
-						}
-				}
-		}
-		## set to re-sanitize
-		attr(dd, "check.passed") <- FALSE
-		e2$data <- dd
-		rr <- sdreport_split(pred_bb)
-		ss2 <- (newdata
-				%>% as_tibble()
-				%>% mutate(
-								prov = factor(prov,
-															labels = get_prov_names(fit)),
-								pred = plogis(rr$value$loprob),
-								pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
-								pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
-		)
+            }
+        }
+        ## set to re-sanitize
+        attr(dd, "check.passed") <- FALSE
+        e2$data <- dd
+    } ## !is.na(newdata) -- substitute new data
+    ## deal with new params (if any)
+    if (!simulate) {
+        rr <- sdreport_split(pred_bb)
+        ss2 <- (newdata
+            %>% as_tibble()
+            %>% mutate(
+                    prov = factor(prov,
+                                  labels = get_prov_names(fit)),
+                    pred = plogis(rr$value$loprob),
+                    pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
+                    pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
+        )
+    } else {
+        if (is.null(newparams)) {
+            ss2 <- pred_bb$simulate()$omicron
+        } else {
+            ss2 <- pred_bb$simulate(newparams)$omicron
+        }
+    }
 		return(ss2)
 }
 
