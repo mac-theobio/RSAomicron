@@ -330,7 +330,11 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
     if (!old_data || perfect_tests || (!simulate && !is.null(newparams))) {
         e2 <- copyEnv(environment(fit$fn))
         environment(pred_bb$fn) <- environment(pred_bb$gr) <-
-            environment(pred_bb$report) <- pred_bb$env <- e2
+            environment(pred_bb$report) <- pred_bb$env <-
+            e2
+        ## copying this environment doesn't quite work right:
+        ## modify it in parallel (ugh)
+        if (!confint) e3 <- environment(environment(pred_bb$report)$f)
         if (!old_data || perfect_tests) {
             if (is.null(newdata)) {
                 ## FIXME: pass include_reinf? check uses_reinf() internally?
@@ -339,20 +343,26 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
             if (perfect_tests) {
                 newdata$perfect_tests <- 1
             }
-            pred_bb$env$data <- newdata
+            e2$data <- newdata
+            if (!confint) e3$data <- newdata
         }
         if (!simulate && !is.null(newparams)) {
-            if (length(pred_bb$env$last.par.best) != length(newparams)) {
+            if (length(e2$last.par.best) != length(newparams)) {
                 stop("newparams must == fixed + random parameters")
             }
             ## FIXME: allow switch to substitute fixed-only
             ## in that case (and *if* confint == TRUE) newparams could be put passed through to sdreport 'par.fixed' arg
             ##  rather than hacking environment
-            pred_bb$env$last.par.best <- newparams
+            e2$last.par.best <- newparams
+            if (!confint) e3$last.par.best <- newparams
         }
     }
     if (!simulate) {
         if (!confint) {
+            environment(environment(pred_bb$report)$f) <- e3
+            ## ugh, sanitize ourselves
+            e3$data$prov <- unclass(e3$data$prov)-1
+            storage.mode(e3$data$prov) <- "double"
             ss2 <- pred_bb$report()$prob
         } else {
             rr <- sdreport_split(pred_bb)
