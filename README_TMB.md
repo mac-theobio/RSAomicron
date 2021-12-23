@@ -59,32 +59,28 @@
 
 ### high priority
 
-- explore current results more
-- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value, but ??? I was previously getting a lot of inner-loop optimization problems when `log_sd` was large. Maybe gone now, maybe interacting with other issues
+- explore current results more; diagnostics??
+- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value. Fixed effects are bad, especially with fake data, because several provinces have complete separation or close to it; if we make the SD of deltar large, the deltar estimates go as far toward ±∞ as we let them ...
 
 ### cosmetic/cleanup
 
-- better incorporation into Make-style pipeline?
-
- 'pars.fixed' only allows us to substitute fixed params when running sdreport ...
-
 ### medium
 
-- importance sampling? `tmbstan`? (will need more priors?)
+- explore reinf fits
+- random effects (especially of reinf)
+- importance sampling? 
+- `tmbstan`? (will need more priors?)
    - works, sort of, but we probably need priors on deltar, lodrop, logain to keep out of trouble
 - write (unit) tests!
 - machinery for automatic binom/beta-binom switching/robust fitting
-- `SIMULATE` methods
 - making loc a fixed effect seemed necessary to get workable answers: can we relax this?
 - log-scale/robust machinery
 - alternatively try using standard mixed model (also good for comparison of effects of allowing for drop/gain)
 - try on an *ensemble* of fake data??
-- get `tmbstan` working (and/or translate to Stan??)
-   - get priors for lodrop, logain, log_deltar, ...
 
 ### low
 
-- break up `tmb_funs.R` ?
+- break up `tmb_funs.R` ? (methods, fitting, etc.)
 - list of required packages/versions
 - see if we can skip binom fit as a preliminary stage (`two_stage = FALSE`)
 - re-introduce possibility of loc random effect (without making code unreadable)???
