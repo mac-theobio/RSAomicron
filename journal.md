@@ -37,7 +37,7 @@ What about the ensembles?
 
 Random effects
 * Current model: sgtf ~ time + province + (time|province) + reinf
-* Maximal model: . + (1|timef) + (reinf|province)
+* Maximal model: . + (1|province:timef) + (reinf|province)
 * Extra intermediate: replace timef with a spline
 
 Data selection
