@@ -2,6 +2,7 @@
 ## Beta formulations
 - `bs`: JD formulation σ = ab/(a+b)
 - `bt`: Standard formulation θ = a + b
+- FILLIN some qualitative stuff
 
 # Data sets
 
@@ -14,8 +15,7 @@
 ## Series types
 
 sr/sg for the data differentiated/not by reinfection
-* · ll/ts for linelist or aggregated time series
-* Concatenation here might be a mistake; better to say .sg.ts. I think.
+* · ll/agg/ts for linelist/aggregated/aggregated-with-proportions(time series)
 
 ## Time points
 
