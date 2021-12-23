@@ -36,8 +36,8 @@ What about the ensembles?
 * postpone
 
 Random effects
-* Current model: sgtf ~ time + province + (0 + time|province) + reinf, beta-binomial error
-* Maximal model: . + (1|province:timef) + (0 + reinf|province)
+* Current model: sgtf ~ time + prov + (0 + time|prov) + reinf
+* Maximal model: . + (1|prov:timef) + (0 + reinf|prov)
    * (available: ??)
 * Extra intermediate: replace timef with a spline
 
@@ -48,3 +48,5 @@ Ahead by a fixed time is equivalent to ahead by a fixed amount on this scale
 ## BMB
 
 - what is the (biological) meaning of (omicron ~ reinf + time + (0 + prov|time)) ? Should reinf interact with time, and what would that mean anyway?  What causes variation in the 'reinf' effect, and how likely is it to vary across provinces? (e.g. is it virological or immunological or epidemiological?)
+
+* JD: Somewhat confused. The main thing that might cause reinf to vary would be the observation processes underlying who is observed as "reinf". My fixed-effect for prov is sort of short hand for the fixed temporal "location" parameters that go by province. I am not sure in your question whether you changed time|prov to prov|time on purpose and thus not sure how to interpret your question
