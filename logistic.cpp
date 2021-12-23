@@ -14,6 +14,7 @@ Type objective_function<Type>::operator() ()
 	DATA_IVECTOR(tot);  // number of confirmed cases
 	DATA_VECTOR(reinf); // reinfections, possibly NA (in which case param will be mapped to 0)
 	DATA_INTEGER(debug);		  // debugging flag
+	DATA_INTEGER(perfect_tests);
 
 	DATA_VECTOR(prior_logsd_logdeltar);	  // prior mean, sd
   
@@ -68,13 +69,17 @@ Type objective_function<Type>::operator() ()
 	vector<Type> deltar_vec = exp(log_deltar_vec);
 	for(int i = 0; i < nobs; i++) {
 		int j = prov(i);
-		prob(i) = baselogis_int(time(i),
-				    loc(j),
-				    // deltar includes province-specific REs
-				    deltar_vec(j),
-				    lodrop, logain,
-				    beta_reinf*reinf(i)
-				    );
+		if (perfect_tests == 0) {
+			prob(i) = baselogis_int(time(i),
+						loc(j),
+						// deltar includes province-specific REs
+						deltar_vec(j),
+						lodrop, logain,
+						beta_reinf*reinf(i)
+						);
+		} else {
+			prob(i) = invlogit(deltar_vec(j)*(time(i) - loc(j)) + beta_reinf*reinf(i));
+		}
 		// FIXME: revert to binomial when theta → ∞ (i.e. over a threshold) ?
 		if (notFinite(log_theta) && notFinite(log_sigma)) {
 			// binomial (log_theta must use `map=` in MakeADFun ...
@@ -82,17 +87,21 @@ Type objective_function<Type>::operator() ()
 		} else if (notFinite(log_sigma)) {
 			// beta-binomial, theta param
 			nll = -1*dbetabinom_theta(Type(omicron(i)), prob(i), exp(log_theta), Type(tot(i)), true);
+			SIMULATE {
+				omicron(i) = rbetabinom_theta(Type(tot(i)), prob(i), exp(log_theta));
+			}
 		} else {
 			nll = -1*dbetabinom_sigma(Type(omicron(i)), prob(i), exp(log_sigma), Type(tot(i)), true);
+			SIMULATE {
+				omicron(i) = rbetabinom_sigma(Type(tot(i)), prob(i), exp(log_sigma));
+			}
+
 		}
 		// copied from glmmTMB: not yet ...
 		// s3 = logit_inverse_linkfun(eta(i), link); // logit(p)
 		// s1 = log_inverse_linkfun( s3, logit_link) + log(phi(i)); // s1 = log(mu*phi)
 		// s2 = log_inverse_linkfun(-s3, logit_link) + log(phi(i)); // s2 = log((1-mu)*phi)
 		// tmp_loglik = glmmtmb::dbetabinom_robust(yobs(i), s1, s2, size(i), true);
-		SIMULATE {
-			omicron(i) = rbetabinom_theta(Type(tot(i)), prob(i), exp(log_theta));
-		}
 
 		res += nll;
 		if (debug > 5) {

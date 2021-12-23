@@ -83,6 +83,14 @@ Type rbetabinom_theta(Type n, Type prob, Type theta)
 	return rbinom(n, rbeta(a, b));
 }
 
+template<class Type>
+Type rbetabinom_sigma(Type n, Type prob, Type sigma)
+{
+	Type a = sigma/(1-prob);
+	Type b = sigma/prob;
+	return rbinom(n, rbeta(a, b));
+}
+
 namespace adaptive {
 	template<class T>
 	T logspace_gamma(const T &x) {

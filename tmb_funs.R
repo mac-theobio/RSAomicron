@@ -57,16 +57,21 @@ coef.TMB <- function(x, random = FALSE) {
 		}
 		return(r)
 }
-vcov.TMB <- function(x, random = FALSE) {
-		if (!require("numDeriv")) stop('need numDeriv package for TMB vcov')
+vcov.TMB <- function(x, random = FALSE, use_numDeriv = FALSE) {
     cc <- coef(x, random = random)
-		H <- numDeriv::jacobian(func = x$gr,
-														x = cc)
-		## fixme: robustify?
-		V <- solve(H)
-		nn <- names(cc)
-		dimnames(V) <- list(nn,nn)
-		return(V)
+    if (use_numDeriv) {
+        if (!require("numDeriv")) stop('need numDeriv package for TMB vcov')
+        H <- numDeriv::jacobian(func = x$gr,
+                                x = cc)
+        ## fixme: robustify?
+        V <- solve(H)
+        nn <- names(cc)
+        dimnames(V) <- list(nn,nn)
+        return(V)
+    }
+    sdr <- get_sdr(x)
+    if (!random) return(sdr$cov.fixed)
+    return(solve(sdr$jointPrecision))
 }
 
 logLik.TMB <- function(x) {
@@ -119,6 +124,8 @@ prior_params <- function(lwr, upr, conf = 0.95) {
 #' @param priors named list of vectors of mean and sd for independent Gaussian priors on parameters
 #' @param map list of parameters to be fixed to starting values (in the form of a factor with NA values for any elements in the vector to be fixed: see \code{map} argument of \code\link{MakeADFun}})
 #' @param debug_level numeric specifying level of debugging
+#' @param tmb_file name of tmb file to use
+#' @param include_sdr compute sdreport and attach it to fitted object?
 tmb_fit <- function(data,
 										two_stage = TRUE,
 										reinf_effect = NULL,
@@ -133,7 +140,8 @@ tmb_fit <- function(data,
 										map = list(),
 										debug_level = 0,
 										tmb_file = NULL,
-                    include_sdr = FALSE)
+                    include_sdr = TRUE,
+                    perfect_tests = FALSE)
 {
 		if(!is.null(tmb_file)) {
 				TMB::compile(paste0(tmb_file, ".cpp"))
@@ -173,7 +181,8 @@ tmb_fit <- function(data,
 		}
 
 		tmb_data <- c(data[data_vars],
-									list(nprov = np, debug = debug_level))
+									list(nprov = np, debug = debug_level,
+                       perfect_tests = perfect_tests))
 		if (!is.null(priors)) {
 				for (nm in names(priors)) {
 						tmb_data[[paste0("prior_",nm)]] <- priors[[nm]]
@@ -254,9 +263,9 @@ get_data <- function(x) {
 		dd <- x$env$data
 		L <- lengths(dd)
 		dd <- (dd[L == max(L)]
-				%>% as.data.frame()	 ## not tibble (collapsing list)
-				%>% mutate(across(prov, factor, labels = get_prov_names(x)))
-				%>% as_tibble()
+				|> as.data.frame()	 ## not tibble (collapsing list)
+        |> dplyr::mutate(dplyr::across(prov, factor, labels = get_prov_names(x)))
+				|> tibble::as_tibble()
 		)
 		return(dd)
 }
@@ -268,7 +277,7 @@ get_data <- function(x) {
 ##' @param prov_names (character vector) province names
 ##' @param include_sdr include sdreport as an attribute (could save time downstream) ?
 ## FIXME: what should the class be called?
-
+## FIXME: do we need to carry province names downstream if we've already fixed the parameter vector?
 mklogistfit <- function(x, tmb_file, prov_names, include_sdr = FALSE) {
 		attr(x, "tmb_file") <- tmb_file
 		attr(x, "prov_names") <- prov_names
@@ -276,7 +285,7 @@ mklogistfit <- function(x, tmb_file, prov_names, include_sdr = FALSE) {
 		x$env$last.par.best <- fix_prov_names(x$env$last.par.best,
 																					prov_names)
     if (include_sdr) {
-        attr(x, "sdr") <- sreport(x)
+        attr(x, "sdr") <- sdreport(x, getJointPrecision = TRUE)
     }
 		class(x) <- c("logistfit", "TMB")
 		return(x)
@@ -296,59 +305,69 @@ get_prov_names <- function(x) {
 ##' by default, expands time x province list (and reinf 0/1?) and generates
 ##' predicted values (and Wald CIs on the log scale)
 ##' @param fit a fitted model
-##' @param newdata data frame for prediction (should include province, time, reinf(?)
+##' @param newdata data frame for prediction (should include province, time, reinf(?)); if NULL, automatic expansion is done;
+##' if NA, no replacement is done
 ##' @param include_reinf expand prediction frame over reinfection status?
+##' @param new parameters to substitute (only used for simulate at the moment)
+##' @param simulate (logical)
+##' @param perfect_tests predict/simulate with perfect specificity/sensitivity of SGTF for omicron detection?
+##' @param confint (logical): return full data frame with province/time/probability/CIs (TRUE), or just a vector of predicted probabilities (FALSE)? (The latter is much faster, and appropriate for ensembles)
 predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fit),
-                              newparams = NULL, simulate = FALSE) {
-		e2 <- copyEnv(environment(fit$fn))
-		pred_bb <- fit
-		environment(pred_bb$fn) <- environment(pred_bb$gr) <-
-				environment(pred_bb$report) <- pred_bb$env <- e2
-    ## deal with newdata (if any)
-    if (!is.na(newdata)) {
-        if (is.null(newdata)) {
-            dd0 <- get_data(fit)
-            args <- with(dd0, list(prov = unique(prov), time = unique(time)))
-            if (uses_reinf(fit)) {
-                args <- c(args, list(reinf = 0:1))
+                              newparams = NULL, simulate = FALSE,
+                              perfect_tests = FALSE,
+                              confint = TRUE) {
+
+    ## FIXME: currently assumes models were fitted _without_ perfect testing,
+    ## i.e. that perfect testing is being assumed for prediction/ensemble purposes only
+    
+    if (!is.null(newdata) && !is.data.frame(newdata) && !is.na(newdata)) {
+        stop("newdata should be NULL, NA, or a data frame")
+    }
+    old_data <- !is.null(newdata) && is.na(newdata)
+    pred_bb <- fit
+    ## if using new data *or* perfect testing *or* new params (including RE) + predict, need to hack internal
+    ## data (make a deep copy first)
+    if (!old_data || perfect_tests || (!simulate && !is.null(newparams))) {
+        e2 <- copyEnv(environment(fit$fn))
+        environment(pred_bb$fn) <- environment(pred_bb$gr) <-
+            environment(pred_bb$report) <- pred_bb$env <- e2
+        if (!old_data || perfect_tests) {
+            if (is.null(newdata)) {
+                ## FIXME: pass include_reinf? check uses_reinf() internally?
+                newdata <- mk_newdata(fit)
             }
-            newdata <- do.call(expand.grid, args)
-        }
-        n <- nrow(newdata)
-        dd <- fit$env$data ## all data
-        for (nm in names(dd)) {
-            if (nm %in% names(newdata)) {
-                dd[[nm]] <- newdata[[nm]]
-            } else {
-                L <- length(dd[[nm]])
-                if (L > 1 && L < nrow(newdata)) {
-                    if (nm == "reinf") {
-                        ## model uses reinf, but include_reinf not specified
-                        if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")
-                        dd[[nm]] <- rep(0, nrow(newdata))
-                    } else {
-                        ## other variables aren't used (we think)
-                        dd[[nm]] <- rep(NA_real_, nrow(newdata))
-                    }
-                }
+            if (perfect_tests) {
+                newdata$perfect_tests <- 1
             }
+            pred_bb$env$data <- newdata
         }
-        ## set to re-sanitize
-        attr(dd, "check.passed") <- FALSE
-        e2$data <- dd
-    } ## !is.na(newdata) -- substitute new data
-    ## deal with new params (if any)
+        if (!simulate && !is.null(newparams)) {
+            if (length(pred_bb$env$last.par.best) != length(newparams)) {
+                stop("newparams must == fixed + random parameters")
+            }
+            ## FIXME: allow switch to substitute fixed-only
+            ## in that case (and *if* confint == TRUE) newparams could be put passed through to sdreport 'par.fixed' arg
+            ##  rather than hacking environment
+            pred_bb$env$last.par.best <- newparams
+        }
+    }
     if (!simulate) {
-        rr <- sdreport_split(pred_bb)
-        ss2 <- (newdata
-            %>% as_tibble()
-            %>% mutate(
-                    prov = factor(prov,
-                                  labels = get_prov_names(fit)),
-                    pred = plogis(rr$value$loprob),
-                    pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
-                    pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
-        )
+        if (!confint) {
+            ss2 <- pred_bb$report()$prob
+        } else {
+            rr <- sdreport_split(pred_bb)
+            L <- lengths(newdata)
+            newdata <- newdata[L == max(L)]  ## return long/time-varying parms only (not flags etc.)
+            ss2 <- (newdata
+                |> tibble::as_tibble()
+                |> dplyr::mutate(
+                              prov = factor(prov,
+                                            labels = get_prov_names(fit)),
+                              pred = plogis(rr$value$loprob),
+                              pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
+                              pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
+            )
+        }
     } else {
         if (is.null(newparams)) {
             ss2 <- pred_bb$simulate()$omicron
@@ -356,16 +375,60 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
             ss2 <- pred_bb$simulate(newparams)$omicron
         }
     }
-		return(ss2)
+    return(ss2)
+}
+
+## generate new data (all crosses of time/province, possibly reinfection status),
+## filling in holes (FIXME: call this complete_newdata() ?)
+mk_newdata <- function(fit) {
+    dd0 <- get_data(fit)
+    args <- with(dd0, list(prov = unique(prov), time = unique(time)))
+    if (uses_reinf(fit)) {
+        args <- c(args, list(reinf = 0:1))
+    }
+    newdata <- do.call(expand.grid, args)
+    n <- nrow(newdata)
+    dd <- fit$env$data ## all data
+    for (nm in names(dd)) {
+        if (nm %in% names(newdata)) {
+            dd[[nm]] <- newdata[[nm]]
+        } else {
+            L <- length(dd[[nm]])
+            if (L > 1 && L < nrow(newdata)) {
+                if (nm == "reinf") {
+                    ## model uses reinf, but include_reinf not specified
+                    if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")
+                    dd[[nm]] <- rep(0, nrow(newdata))
+                } else {
+                    ## other variables aren't used (we think)
+                    dd[[nm]] <- rep(NA_real_, nrow(newdata))
+                } ## not reinf
+            } ## variable to replace
+        }
+    } ## loop over names(dd)
+    ## set to re-sanitize
+    attr(dd, "check.passed") <- FALSE
+    return(dd)
+}
+    
+## FIXME: this is the clever 'change head and re-evaluate' trick.
+##  better to refactor 'base-pred' into one component that modifies the object data/parms
+## (if necessary) and another that predicts or simulates ??
+simulate.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fit),
+                               newparams = NULL) {
+    mc <- match.call()
+    mc[[1]] <- quote(predict)
+    mc$simulate <- TRUE
+    eval.parent(mc)
 }
 
 ## compute sdreport and split by name
-sdreport_split <- function(fit) {
-		rr <- sdreport(fit)
-		nm <- names(rr$value)
-		rr$value <- split(rr$value, nm)
-		rr$sd <- split(rr$sd, nm)
-		return(rr)
+sdreport_split <- function(fit, newparams = NULL) {
+    rr <- sdreport(fit, par.fixed = newparams)
+    nm <- names(rr$value)
+    rr$value <- split(rr$value, nm)
+    rr$sd <- split(rr$sd, nm)
+    return(rr)
 }
 
 uses_reinf <- function(fit) {
@@ -399,14 +462,17 @@ get_deltar <- function(fit) {
         deltar = exp(v),
         lwr = exp(v - 1.96*s),
         upr = exp(v + 1.96*s))
-        %>% dplyr::mutate(across(prov, mk_order, deltar))
+        |> dplyr::mutate(across(prov, mk_order, deltar))
     )
     return(deltar_data)
 }
 
-## helper function for purrr::map_dfr with .id; sets a vector's names to itself
-self_named <- function(x) {
-    setNames(x,x)
+## get sdreport if already stored, otherwise compute it
+## FIXME: tradeoff for computing joint precision by default?
+get_sdr <- function(fit) {
+    if (!is.null(sdr <- attr(fit, "sdr"))) return(sdr)
+    return(sdreport(fit, getJointPrecision = TRUE))
 }
+
 saveEnvironment()
 

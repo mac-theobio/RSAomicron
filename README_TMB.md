@@ -3,19 +3,19 @@
 - `logistic.cpp`: basic fitting machinery; includes reinfection, but reinfection term can be mapped to 0
 - `logistic_fit.h`: utilities (dbetabinom parameterizations, logistic-with-error function, etc.)
 - `tmb_funs.R`: utilities (TMB methods, general pipeline utils); includes shells for constructing & fitting the models
-- `sgtmb.R`: fit TMB models (**misnamed**: does both w/o and with reinfection)
-- `sgtmb_eval.R`: basic downstream machinery: predictions, some CIs, etc.
-
-### older/incomplete
-
-- `tmb_fit.R`/`tmb_eval.R`: parallel to `sgtmb*` above, but less piped
+- `tmb_fit.R`: fit TMB models
+- `tmb_eval.R`: basic downstream machinery: predictions, some CIs, etc.
 - `tmb_ci.R`: comparative CIs for parameters (Wald, uniroot, profile): slow (5-6 minutes)
+- `tmb_ci_plot.R`: comparison plots from previous step
+
+### incomplete
+
 - `gen_funs.R`: more utility functions (not TMB-specific; currently unused)
 
 ## Description
 
-* Fits a likelihood model to testing data
-* Parameters/priors: 
+- Fits a likelihood model to testing data
+- Parameters/priors: 
    - `loc`: midpoint of omicron takeover curve (per-province fixed effect)
    - `log_deltar`: selective advantage of omicron (base + province-level RE; log SD gives a prior range of SD (log-advantage) from 0.01 to 0.3, i.e. a 1% to 30% variation in deltar across provinces)
    - `logsd_logdeltar`: log of cross-province SD of log_deltar
@@ -24,14 +24,20 @@
    - `logain`: log-odds of false positive SGTF (i.e. non-omicron w/ SGTF)
    - `log_theta`: log of size parameter for beta-binomial sampling error
    - `beta_reinf`: log-odds difference of SGTF probability for reinfections
+- flags/scalar data:
+   - `perfect_tests` (logical): assume perfect sens/specificity for SGTF == omicron?
 - stores info on predicted probabilities, estimated deltar by province (in addition to coefficient estimates etc.)
 - basic functions (see roxygen comments in `tmb_funs.R`)
    - `fit_tmb(data, ...)`: basic model fitting. Returned objects have class `c("logistfit", "TMB")`
    - ∃ TMB methods: `coef()`, `vcov()`, `logLik()`, `tidy()`, (in `broom.mixed` pkg)
-   - ∃ logistfit methods: `predict()` (prediction, expanding prov × time)
+   - ∃ logistfit methods: `predict()` (prediction, expanding prov × time, with or without CIs), `simulate()`
    - TMB built-in functions: `fit$report()`, `TMB::sdreport(fit)`
    - `get_tmb_file(fit)`, `get_prov_names(fit)`, `get_data(fit)` retrieve carried-along info
    - `get_deltar` gets the province-level values of deltar *and* the population-level estimate (`filter` it out if you don't want it ...)
+
+## Perfect testing
+
+- in principle we could simply pass through `-Inf` for `lodrop` and `logain` if we wanted to simulate perfect testing. That causes problems with `sdreport()` though. Instead I have implemented a `perfect_testing` flag that skips the sensitivity/specificity stuff and calls `invlogit()` directly. (I realized later that we don't necessarily need to call `sdreport()` in the current workflow (we are only saving predictions, not CIs/sds, when we generate ensembles), so this might have been unnecessary.)
 
 ## Random effects
 
@@ -60,6 +66,8 @@
 
 - better incorporation into Make-style pipeline?
 
+ 'pars.fixed' only allows us to substitute fixed params when running sdreport ...
+
 ### medium
 
 - importance sampling? `tmbstan`? (will need more priors?)
@@ -68,7 +76,6 @@
 - machinery for automatic binom/beta-binom switching/robust fitting
 - `SIMULATE` methods
 - making loc a fixed effect seemed necessary to get workable answers: can we relax this?
-- adjustable beta-binomial parameterizations? Do we really need this?
 - log-scale/robust machinery
 - alternatively try using standard mixed model (also good for comparison of effects of allowing for drop/gain)
 - try on an *ensemble* of fake data??
@@ -84,3 +91,4 @@
 - power exponential priors as in WNV project?
 - *Way* premature, but could parallelize some more of the computations (internally via OpenMP, or by furrr::future_map*?)
  
+
