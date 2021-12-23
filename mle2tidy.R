@@ -20,7 +20,6 @@ coefdf <- (names(fitlist)
 				return(NULL)
 			}
 			warning("Using Wald CI for ", p)
-			
 		}
 
 		dd <- (as.data.frame(cc)

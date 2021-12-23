@@ -31,9 +31,8 @@ data: datadir=$(data)
 data: local.mk
 	/bin/ln -s $(data) $@
 
-pushdir = data/outputs
-
 Sources += data.md
+pushdir = data/outputs
 
 ######################################################################
 
@@ -167,11 +166,11 @@ impmakeR += tmb_fit
 %.tmb_fit.Rout: tmb_fit.R %.ts.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
-######################################################################
+## Evaluate fits
 
-## bsfake.sg.tmb_eval.Rout: tmb_eval.R tmb_funs.R
-## bsfake.sr.tmb_eval.Rout: tmb_eval.R tmb_funs.R
-## sgtf_ref.chop2.sg.tmb_eval.Rout: tmb_eval.R tmb_funs.R
+## bsfake.sg.tmb_eval.Rout: tmb_eval.R
+## bsfake.sr.tmb_eval.Rout: tmb_eval.R
+## sgtf_ref.chop2.sg.tmb_eval.Rout: tmb_eval.R
 %.tmb_eval.Rout: tmb_eval.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
@@ -222,16 +221,11 @@ impmakeR += sgssmle2
 
 ######################################################################
 
-## A standard fit for comparing to the tmb fit
-## main.bsfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
-## main.btfit.ssfitboth.sgssmle2.Rout: sgssmle2.R
-comp_fit.sgssmle2.rds: main.btfit.ssfitboth.sgssmle2.rds
-	$(forcelink)
-
-## Tidy (Quick and dirty Wald intervals)
-## comp_fit.mle2tidy.Rout: mle2tidy.R
-## main.btfit.ssfitboth.mle2tidy.Rout: mle2tidy.R
+## Tidy (Confidence-interval machien)
 ## main.bsfit.ssfitboth.mle2tidy.Rout: mle2tidy.R
+## main.bsfit.ssfitspec.mle2tidy.Rout: mle2tidy.R
+## main.btfit.ssfitboth.mle2tidy.Rout: mle2tidy.R
+## main.btfit.ssfitspec.mle2tidy.Rout: mle2tidy.R
 %.mle2tidy.Rout: mle2tidy.R %.sgssmle2.rds ssfitfuns.rda
 	$(pipeR)
 
