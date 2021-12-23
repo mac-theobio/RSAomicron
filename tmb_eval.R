@@ -10,9 +10,8 @@ library(TMB) ## still need it to operate on TMB objects
 pt_alpha <- 0.5
 reinf_colours <- c("black", "red")
 ## BMB: I know JD likes scale_size_area, but it makes the size range of the points too hard to handle ...
-if (FALSE) {
-    scale_size <- scale_size_area
-}
+## scale_size <- scale_size_area
+
 plot_simple <- FALSE
 
 startGraphics()

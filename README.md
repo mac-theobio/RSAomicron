@@ -2,7 +2,7 @@
 ## Beta formulations
 - `bs`: JD formulation σ = ab/(a+b)
 - `bt`: Standard formulation θ = a + b
-- FILLIN some qualitative stuff
+- Conceptually speaking, if bs and bt look about the same for p ~ 1/2, then we expect bs to have relatively larger "information" (thus narrower distributions) when p is far from 1/2. It would be good to do the calculation
 
 # Data sets
 
@@ -32,6 +32,12 @@ sr/sg for the data differentiated/not by reinfection
 * ssfitspec – fix logain
 * ssfitboth – fix neither
 
-## Targets (in flux) ⇒ 
+## Special names (search forcelink in Makefile)
 
-* ssmle2
+* main.sx.ts.rds is an alias for sgtf_ref.chop2.sx.ts.rds (our current main data set)
+
+* bsfake and btfake (above) are also special names
+
+## Fake data
+
+## What_ever_!!
