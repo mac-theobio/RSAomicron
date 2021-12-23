@@ -13,20 +13,11 @@ loadEnvironments()
 soLoad()
 
 set.seed(101)
-
-nrow(get_data(fit))
-s0 <- simulate(fit, newdata = NA)
-length(s0)
-s0 <- simulate(fit, newdata = NULL)
-length(s0)
-
-## only allows theta beta-binomial
-
+## need covariance matrix/random values for both fixed & random effects
 pop_vals <- MASS::mvrnorm(nsim,
                           mu = coef(fit, random = TRUE),
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
-## if these values are too small we run into trouble with sdreport ...
 
 ensemble <- list()
 pb <- txtProgressBar(style = 3, max = nsim)
