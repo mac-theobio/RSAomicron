@@ -330,16 +330,20 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
     old_data <- !is.null(newdata) && is.na(newdata)
     pred_bb <- fit
     ## store original values for restoration
-    orig_data <- environment(fit$env)$data
-    orig_params <- environment(fit$env)$params
-    orig_map <- environment(fit$env)$map
+    val_nms <- c("data", "last.par.best", "last.par", "map")
+    orig_vals <- list()
+    for (nm in val_nms) {
+        orig_vals[[nm]] <- fit$env[[nm]]
+    }
     e1 <- pred_bb$env
     e2 <- environment(e1$f)
     on.exit({
-        e1$data <- e2$data <- orig_data
-        e1$last.params.best <- e2$last.params.best <- e1$last.par <- e2$last.par <- orig_params
-        e1$map <- e2$map <- orig_map
-    })
+        for (nm in val_nms) {
+            assign(nm, orig_vals[[nm]], e1)
+            assign(nm, orig_vals[[nm]], e2)
+        }
+    },
+    add = TRUE)
     checklen <- function(e) max(lengths(e$data))
     ## if using new data *or* perfect testing *or* new params (including RE) + predict, need to hack internal
     ## data (make a deep copy first)
@@ -398,6 +402,7 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
 ## filling in holes
 mk_completedata <- function(fit) {
     dd0 <- get_data(fit)
+    orig_len <- max(lengths(dd0))
     args <- with(dd0, list(prov = unique(prov), time = unique(time)))
     if (uses_reinf(fit)) {
         args <- c(args, list(reinf = 0:1))
@@ -411,7 +416,7 @@ mk_completedata <- function(fit) {
             dd[[nm]] <- newdata[[nm]]
         } else {
             L <- length(dd[[nm]])
-            if (L > 1 && L < nrow(newdata)) {
+            if (L == orig_len) {
                 if (nm == "reinf") {
                     ## model uses reinf, but include_reinf not specified
                     if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")

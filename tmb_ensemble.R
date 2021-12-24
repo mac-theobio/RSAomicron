@@ -21,11 +21,18 @@ pop_vals <- MASS::mvrnorm(nsim,
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
 
+## names(fit$env$data$prior_logsd_logdeltar) <- NULL
+predict(fit)
 ss <- sdreport(fit)  ## works fine before we mess with it
 
 ## works
+str(fit$env$data)
 nrow(p1 <- predict(fit, newparams = pop_vals[1,],
-             perfect_tests = FALSE, confint = TRUE))
+                   perfect_tests = FALSE, confint = TRUE))
+str(fit$env$data)
+nrow(p1 <- predict(fit))
+
+
 matplot(p1[, 7:9], type = "l")
 
 length(predict(fit, newparams = pop_vals[1,],
