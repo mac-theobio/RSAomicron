@@ -21,11 +21,19 @@ pop_vals <- MASS::mvrnorm(nsim,
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
 
+ss <- sdreport(fit)  ## works fine before we mess with it
+
+## works
+nrow(p1 <- predict(fit, newparams = pop_vals[1,],
+             perfect_tests = FALSE, confint = TRUE))
+matplot(p1[, 7:9], type = "l")
+
 length(predict(fit, newparams = pop_vals[1,],
                perfect_tests = TRUE, confint = FALSE))
 
-nrow(predict(fit, newparams = pop_vals[1,],
-               perfect_tests = TRUE, confint = TRUE))
+## this messes things up ... maybe we just don't want to do it right now ...
+## nrow(predict(fit, newparams = pop_vals[1,],
+##              perfect_tests = TRUE, confint = TRUE))
 
 ensemble <- list()
 pb <- txtProgressBar(style = 3, max = nsim)

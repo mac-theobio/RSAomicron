@@ -319,42 +319,58 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
 
     ## FIXME: currently assumes models were fitted _without_ perfect testing,
     ## i.e. that perfect testing is being assumed for prediction/ensemble purposes only
+
+    if (confint && perfect_tests) {
+        stop("confint==TRUE and perfect_tests==TRUE are currently incompatible ...")
+    }
     
     if (!is.null(newdata) && !is.data.frame(newdata) && !is.na(newdata)) {
         stop("newdata should be NULL, NA, or a data frame")
     }
     old_data <- !is.null(newdata) && is.na(newdata)
     pred_bb <- fit
+    ## store original values for restoration
+    orig_data <- environment(fit$env)$data
+    orig_params <- environment(fit$env)$params
+    orig_map <- environment(fit$env)$map
+    e1 <- pred_bb$env
+    e2 <- environment(e1$f)
+    on.exit({
+        e1$data <- e2$data <- orig_data
+        e1$last.params.best <- e2$last.params.best <- e1$last.par <- e2$last.par <- orig_params
+        e1$map <- e2$map <- orig_map
+    })
+    checklen <- function(e) max(lengths(e$data))
     ## if using new data *or* perfect testing *or* new params (including RE) + predict, need to hack internal
     ## data (make a deep copy first)
     if (!old_data || perfect_tests || (!simulate && !is.null(newparams))) {
-        e2 <- copyEnv(environment(fit$fn))
-        environment(pred_bb$fn) <- environment(pred_bb$gr) <-
-            environment(pred_bb$report) <- pred_bb$env <- e2
         if (!old_data || perfect_tests) {
             if (is.null(newdata)) {
                 ## FIXME: pass include_reinf? check uses_reinf() internally?
-                newdata <- mk_newdata(fit)
+                newdata <- mk_completedata(fit)
             }
             if (perfect_tests) {
                 newdata$perfect_tests <- 1
+                e1$map <- e2$map <- c(e1$map, list(lodrop = factor(NA), logain = factor(NA)))
             }
-            pred_bb$env$data <- newdata
+            e1$data <- e2$data <- newdata
         }
         if (!simulate && !is.null(newparams)) {
-            if (length(pred_bb$env$last.par.best) != length(newparams)) {
+            if (length(e1$last.par.best) !=length(newparams)) {
                 stop("newparams must == fixed + random parameters")
             }
             ## FIXME: allow switch to substitute fixed-only
             ## in that case (and *if* confint == TRUE) newparams could be put passed through to sdreport 'par.fixed' arg
             ##  rather than hacking environment
-            pred_bb$env$last.par.best <- newparams
+            e1$last.par.best <- e2$last.par.best <- newparams
         }
     }
     if (!simulate) {
         if (!confint) {
             ss2 <- pred_bb$report()$prob
         } else {
+            ## not quite sure why $prov variable still has levels?? should have been sanitized aready?
+            pred_bb$env$data <- lapply(pred_bb$env$data, dataSanitize)
             rr <- sdreport_split(pred_bb)
             L <- lengths(newdata)
             newdata <- newdata[L == max(L)]  ## return long/time-varying parms only (not flags etc.)
@@ -379,8 +395,8 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
 }
 
 ## generate new data (all crosses of time/province, possibly reinfection status),
-## filling in holes (FIXME: call this complete_newdata() ?)
-mk_newdata <- function(fit) {
+## filling in holes
+mk_completedata <- function(fit) {
     dd0 <- get_data(fit)
     args <- with(dd0, list(prov = unique(prov), time = unique(time)))
     if (uses_reinf(fit)) {
@@ -389,6 +405,7 @@ mk_newdata <- function(fit) {
     newdata <- do.call(expand.grid, args)
     n <- nrow(newdata)
     dd <- fit$env$data ## all data
+    ## cat(names(dd), "\n")
     for (nm in names(dd)) {
         if (nm %in% names(newdata)) {
             dd[[nm]] <- newdata[[nm]]
@@ -407,6 +424,9 @@ mk_newdata <- function(fit) {
         }
     } ## loop over names(dd)
     ## set to re-sanitize
+    dd <- lapply(dd, dataSanitize)
+    ## cat(names(dd), "\n")
+    ## maybe unnecessary now?
     attr(dd, "check.passed") <- FALSE
     return(dd)
 }
@@ -472,6 +492,25 @@ get_deltar <- function(fit) {
 get_sdr <- function(fit) {
     if (!is.null(sdr <- attr(fit, "sdr"))) return(sdr)
     return(sdreport(fit, getJointPrecision = TRUE))
+}
+
+## copied from TMB
+dataSanitize <- function(x) {
+    if(is.list(x)) return( lapply(x, dataSanitize) )
+    if(is(x,"sparseMatrix")){
+        x <- as(x,"dgTMatrix")
+    } else if (is.character(x)) {
+        ## Do nothing
+    } else {
+        if(is.factor(x)) x <- unclass(x)-1L ## Factors are passed as 0-based integers !!!
+        storage.mode(x) <- "double"
+    }
+    aa <- setdiff(attributes(x), c("dim", "names"))
+    ## added
+    for (a in names(aa)) {
+        attr(x, a) <- NULL
+    }
+    return(x)
 }
 
 saveEnvironment()
