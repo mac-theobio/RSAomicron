@@ -1,5 +1,7 @@
 library(shellpipes)
-rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+if (interactive()) {
+    rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+}
 
 library(TMB) ## still need it to operate on TMB objects
 library(ggplot2); theme_set(theme_bw() + theme(panel.spacing = grid::unit(0, "lines")))
@@ -18,6 +20,12 @@ pop_vals <- MASS::mvrnorm(nsim,
                           mu = coef(fit, random = TRUE),
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
+
+length(predict(fit, newparams = pop_vals[1,],
+               perfect_tests = TRUE, confint = FALSE))
+
+nrow(predict(fit, newparams = pop_vals[1,],
+               perfect_tests = TRUE, confint = TRUE))
 
 ensemble <- list()
 pb <- txtProgressBar(style = 3, max = nsim)
