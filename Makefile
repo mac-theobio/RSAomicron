@@ -11,11 +11,12 @@ Ignore = target.mk
 # -include makestuff/perl.def
 
 vim_session:
-	bash -cl "vmt README.md journal.md mle.mk"
+	bash -cl "vmt README.md journal.md mle.mk README_TMB.md"
 
 ######################################################################
 
-Sources += $(wildcard *.make)
+Sources += Makefile $(wildcard *.make)
+
 ## <edit> dubzee.make
 ## dubzee.local:
 ## /bin/rm -r data
@@ -189,7 +190,17 @@ impmakeR += tmb_fit
 %.tmb_ci_plot.Rout: tmb_ci_plot.R %.tmb_ci.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
+## bsfake.sg.lsfit.tmb_ensemble.Rout: tmb_ensemble.R
 %.tmb_ensemble.Rout: tmb_ensemble.R %.tmb_fit.rds tmb_funs.rda logistic.so
+	$(pipeR)
+
+######################################################################
+
+## Compare beta formulations for tmb_fit's
+
+## bsfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
+## btfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
+%.tmb_betaComp.Rout: tmb_betaComp.R %.lsfit.tmb_fit.rds %.ltfit.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ######################################################################
@@ -197,6 +208,7 @@ impmakeR += tmb_fit
 ## mle pipeline now sidelined
 
 Sources += mle.mk
+include mle.mk
 
 ######################################################################
 
