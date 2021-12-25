@@ -328,13 +328,28 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
     ## if using new data *or* perfect testing *or* new params (including RE) + predict, need to hack internal
     ## data (make a deep copy first)
     if (!old_data || perfect_tests || (!simulate && !is.null(newparams))) {
+        ## store original values for restoration
+        ## val_nms <- c("data", "last.par.best", "last.par", "map")
+        ## orig_vals <- list()
+        ## for (nm in val_nms) {
+        ##     orig_vals[[nm]] <- fit$env[[nm]]
+        ## }
+        ## e1 <- pred_bb$env
+        ## e2 <- environment(e1$f)
+        ## on.exit({
+        ## for (nm in val_nms) {
+        ##     assign(nm, orig_vals[[nm]], e1)
+        ##     assign(nm, orig_vals[[nm]], e2)
+        ## }
+        ## },
+        ## add = TRUE)
         e2 <- copyEnv(environment(fit$fn))
         environment(pred_bb$fn) <- environment(pred_bb$gr) <-
             environment(pred_bb$report) <- pred_bb$env <- e2
         if (!old_data || perfect_tests) {
             if (is.null(newdata)) {
                 ## FIXME: pass include_reinf? check uses_reinf() internally?
-                newdata <- mk_newdata(fit)
+                newdata <- mk_completedata(fit)
             }
             if (perfect_tests) {
                 newdata$perfect_tests <- 1
@@ -353,8 +368,16 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
     }
     if (!simulate) {
         if (!confint) {
-            ss2 <- pred_bb$report()$prob
+            ## do this in R
+            ## for now assume perfect tests, ?? (don't need beta-binom params here)
+            if (!perfect_tests) stop("prediction w/o CI assumes perfect_tests, for now")
+            ## UGH!
+            names(newparams) <- gsub("\\.[[:alpha:]]+", "", names(newparams))
+            ss <- split(newparams, names(newparams))
+            ss2 <-with(c(newdata, ss),
+                 plogis((exp(log_deltar + b[prov]))*(time-loc[prov])))
         } else {
+            pred_bb$fn() ## shakedown??
             rr <- sdreport_split(pred_bb)
             L <- lengths(newdata)
             newdata <- newdata[L == max(L)]  ## return long/time-varying parms only (not flags etc.)
@@ -380,7 +403,7 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
 
 ## generate new data (all crosses of time/province, possibly reinfection status),
 ## filling in holes (FIXME: call this complete_newdata() ?)
-mk_newdata <- function(fit) {
+mk_completedata <- function(fit) {
     dd0 <- get_data(fit)
     args <- with(dd0, list(prov = unique(prov), time = unique(time)))
     if (uses_reinf(fit)) {

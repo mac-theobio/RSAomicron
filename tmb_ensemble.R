@@ -21,21 +21,60 @@ pop_vals <- MASS::mvrnorm(nsim,
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
 
+## perfect_tests is problematic, but we only want the
+## complete data
+## this is inefficient, could maybe use mk_completedata directly?
+## nrow(pp1 <- predict(fit))
+
+## check that it completes
 length(predict(fit, newparams = pop_vals[1,],
                perfect_tests = TRUE, confint = FALSE))
 
-nrow(predict(fit, newparams = pop_vals[1,],
-               perfect_tests = TRUE, confint = TRUE))
 
-ensemble <- list()
+## SEG FAULT!
+## nrow(pp1 <- predict(fit, newparams = pop_vals[1,],
+##               perfect_tests = TRUE, confint = TRUE))
+
+
+base <- (mk_completedata(fit)[c("prov", "time", "reinf")]
+    |> tibble::as_tibble()
+)
+ensemble0 <- list()
 pb <- txtProgressBar(style = 3, max = nsim)
 for (i in 1:nsim) {
     setTxtProgressBar(pb, i)
-    ensemble[[i]] <- predict(fit, newparams = pop_vals[i,], perfect_tests = TRUE, confint = FALSE)
+    ensemble0[[i]] <- predict(fit, newparams = pop_vals[i,], perfect_tests = TRUE, confint = FALSE)
 }
 close(pb)
 
-ensemble <- do.call(cbind, ensemble)
+ensemble <- (bind_cols(base, ensemble0)
+    |> pivot_longer(-c(prov, time))
+    |> group_by(prov, time)
+    |> summarise(pred = quantile(value, 0.5),
+                 pred_lwr = quantile(value, 0.025),
+                 pred_upr = quantile(value, 0.975),
+                 .groups = "drop")
+)
 
-## now we "just" have to reshape/compute central & quantile values appropriately
-## (functional box plots ????)
+gg0 <- (ggplot(ensemble, aes(time, pred, ymin = pred_lwr, ymax = pred_upr))
+    + geom_line()
+    + geom_ribbon(alpha = 0.2, colour = NA)
+    + facet_wrap(~prov)
+)
+
+print(gg0)
+
+## compare ensemble and Wald.  Not sure why ensemble is so much larger: think it may have to do with whether REs are held fixed during CI calculation in sdreport?
+
+## pp1 is no longer a fair comparison
+## print(gg0
+##       + geom_line(data = pp1, colour = "blue", lty = 2)
+##       + geom_ribbon(data = pp1, fill = "blue", alpha = 0.2, colour = NA)
+##       )
+      
+    
+
+
+
+
+

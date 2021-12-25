@@ -176,6 +176,7 @@ impmakeR += tmb_fit
 
 ## bsfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
 ## bsfake.sg.lsfit.tmb_eval.Rout: tmb_eval.R
+## btfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
 ## sgtf_ref.chop2.sg.tmb_eval.Rout: tmb_eval.R
 %.tmb_eval.Rout: tmb_eval.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
