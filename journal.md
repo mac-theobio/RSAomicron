@@ -54,3 +54,12 @@ Ahead by a fixed time is equivalent to ahead by a fixed amount on this scale
 ## Stats journal
 
 We are ready to compare the two parameterizations on the SG side. Do we have a criterion for what we will do if they are similar? We do not.
+
+2021 Dec 25 (Sat)
+=================
+
+Canada will provide ensembles of parameters including betabinomial shape.
+
+We will pick a parameterization using δAIC < 2
+
+We will ask Ben to try to add reinf×prov
