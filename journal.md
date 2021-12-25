@@ -62,4 +62,6 @@ Canada will provide ensembles of parameters including betabinomial shape.
 
 We will pick a parameterization using δAIC < 2
 
-We will ask Ben to try to add reinf×prov
+We will ask Ben to try to add reinf×prov.
+
+We are making an a priori call that we don't think we have enough for province×date – if there's extra time we can do this by a formal test.
