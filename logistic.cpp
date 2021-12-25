@@ -65,6 +65,7 @@ Type objective_function<Type>::operator() ()
 	vector<Type> prob(nobs);
 	Type s1, s2, s3;
 
+	// calculate probability
 	vector<Type> log_deltar_vec = log_deltar + exp(logsd_logdeltar)*b;
 	vector<Type> deltar_vec = exp(log_deltar_vec);
 	for(int i = 0; i < nobs; i++) {
@@ -80,9 +81,10 @@ Type objective_function<Type>::operator() ()
 		} else {
 			prob(i) = invlogit(deltar_vec(j)*(time(i) - loc(j)) + beta_reinf*reinf(i));
 		}
+
+		// calculate neg log likelihood
 		// FIXME: revert to binomial when theta → ∞ (i.e. over a threshold) ?
-		if (notFinite(log_theta) && notFinite(log_sigma)) {
-			// binomial (log_theta must use `map=` in MakeADFun ...
+		if (notFinite(log_theta) && notFinite(log_sigma)) { 
 			nll = -1*dbinom(Type(omicron(i)), Type(tot(i)), prob(i), true);
 		} else if (notFinite(log_sigma)) {
 			// beta-binomial, theta param
@@ -95,15 +97,15 @@ Type objective_function<Type>::operator() ()
 			SIMULATE {
 				omicron(i) = rbetabinom_sigma(Type(tot(i)), prob(i), exp(log_sigma));
 			}
-
 		}
+
 		// copied from glmmTMB: not yet ...
 		// s3 = logit_inverse_linkfun(eta(i), link); // logit(p)
 		// s1 = log_inverse_linkfun( s3, logit_link) + log(phi(i)); // s1 = log(mu*phi)
 		// s2 = log_inverse_linkfun(-s3, logit_link) + log(phi(i)); // s2 = log((1-mu)*phi)
 		// tmp_loglik = glmmtmb::dbetabinom_robust(yobs(i), s1, s2, size(i), true);
 
-		res += nll;
+		if (!notFinite(nll)) res += nll;
 		if (debug > 5) {
 			std::cout << i << " " << prob(i) << " " << omicron(i) << " " <<
 				tot(i) << " " << nll << " " << res << "\n";

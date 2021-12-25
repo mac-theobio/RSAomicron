@@ -1,5 +1,7 @@
 library(shellpipes)
-## rpcall("btfake.sgtmb_eval.Rout sgtmb_eval.R btfake.sgtmb.rds tmb_funs.rda logistic.so")
+if (interactive()) {
+    rpcall("btfake.sg.ltfit.tmb_eval.Rout tmb_eval.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+}
 
 library(broom.mixed)
 library(dplyr)

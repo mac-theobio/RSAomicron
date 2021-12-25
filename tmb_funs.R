@@ -40,6 +40,10 @@ fix_prov_names <- function(x, names = get_names(ss$prov),
 		return(x)
 }
 
+anonymize_names <- function(x) {
+    return(setNames(x, stringr::str_remove(names(x), "\\..*$")))
+}
+           
 ##' turn on tracing for a TMB object
 ##' @param obj a TMB object (result of \code{MakeADFun})
 ##' @param trace should tracing be enabled?
@@ -312,59 +316,42 @@ get_prov_names <- function(x) {
 ##' @param simulate (logical)
 ##' @param perfect_tests predict/simulate with perfect specificity/sensitivity of SGTF for omicron detection?
 ##' @param confint (logical): return full data frame with province/time/probability/CIs (TRUE), or just a vector of predicted probabilities (FALSE)? (The latter is much faster, and appropriate for ensembles)
-predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fit),
+predict.logistfit <- function(fit, newdata = NULL,
+                              include_reinf = uses_reinf(fit),
                               newparams = NULL, simulate = FALSE,
                               perfect_tests = FALSE,
                               confint = TRUE) {
 
     ## FIXME: currently assumes models were fitted _without_ perfect testing,
     ## i.e. that perfect testing is being assumed for prediction/ensemble purposes only
-    
+
+    n_orig <- max(lengths(fit$env$data))
+
     if (!is.null(newdata) && !is.data.frame(newdata) && !is.na(newdata)) {
         stop("newdata should be NULL, NA, or a data frame")
     }
     old_data <- !is.null(newdata) && is.na(newdata)
-    pred_bb <- fit
-    ## if using new data *or* perfect testing *or* new params (including RE) + predict, need to hack internal
-    ## data (make a deep copy first)
-    if (!old_data || perfect_tests || (!simulate && !is.null(newparams))) {
-        ## store original values for restoration
-        ## val_nms <- c("data", "last.par.best", "last.par", "map")
-        ## orig_vals <- list()
-        ## for (nm in val_nms) {
-        ##     orig_vals[[nm]] <- fit$env[[nm]]
-        ## }
-        ## e1 <- pred_bb$env
-        ## e2 <- environment(e1$f)
-        ## on.exit({
-        ## for (nm in val_nms) {
-        ##     assign(nm, orig_vals[[nm]], e1)
-        ##     assign(nm, orig_vals[[nm]], e2)
-        ## }
-        ## },
-        ## add = TRUE)
-        e2 <- copyEnv(environment(fit$fn))
-        environment(pred_bb$fn) <- environment(pred_bb$gr) <-
-            environment(pred_bb$report) <- pred_bb$env <- e2
-        if (!old_data || perfect_tests) {
-            if (is.null(newdata)) {
-                ## FIXME: pass include_reinf? check uses_reinf() internally?
-                newdata <- mk_completedata(fit)
-            }
-            if (perfect_tests) {
-                newdata$perfect_tests <- 1
-            }
-            pred_bb$env$data <- newdata
+    ## if using new data *or* perfect testing *or* new params (including RE) + predict, need to re-run MakeADFun
+    mknew <- (!old_data || perfect_tests || (!simulate && !is.null(newparams)))
+    remake_adfun <- confint && mknew
+    map <- fit$env$map
+    if (old_data && !perfect_tests) {
+        newdata <- fit$env$data
+    } else {
+        ## need to reconstruct data
+        if (is.null(newdata)) {
+            ## FIXME: pass include_reinf? check uses_reinf() internally?
+            newdata <- mk_completedata(fit, expand = remake_adfun)
         }
-        if (!simulate && !is.null(newparams)) {
-            if (length(pred_bb$env$last.par.best) != length(newparams)) {
-                stop("newparams must == fixed + random parameters")
-            }
-            ## FIXME: allow switch to substitute fixed-only
-            ## in that case (and *if* confint == TRUE) newparams could be put passed through to sdreport 'par.fixed' arg
-            ##  rather than hacking environment
-            pred_bb$env$last.par.best <- newparams
+        if (perfect_tests) {
+            newdata$perfect_tests <- 1
+            map <- c(map, list(lodrop = factor(NA), logain = factor(NA)))
         }
+        if (is.null(newparams)) newparams <- fit$env$last.par.best
+        random <- fit$env$random
+        ## FIXME: allow switch to substitute fixed-only
+        ## in that case (and *if* confint == TRUE) newparams could be put passed through to sdreport 'par.fixed' arg
+        ##  rather than hacking environment
     }
     if (!simulate) {
         if (!confint) {
@@ -374,11 +361,30 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
             ## UGH!
             names(newparams) <- gsub("\\.[[:alpha:]]+", "", names(newparams))
             ss <- split(newparams, names(newparams))
-            ss2 <-with(c(newdata, ss),
+            if (perfect_tests) {
+                ss2 <- with(c(newdata, ss),
                  plogis((exp(log_deltar + b[prov]))*(time-loc[prov])))
+            } else {
+                ss2 <- with(c(newdata, ss),
+                     baselogis(time, loc[prov], exp(log_deltar + b[prov]),
+                               lodrop, logain))
+            }
         } else {
-            pred_bb$fn() ## shakedown??
-            rr <- sdreport_split(pred_bb)
+            np <- anonymize_names(newparams)
+            ## restore parameters that got left out because of mapping
+            ## use original names in case we have added to map in the meantime
+            for (i in names(fit$env$map)) {
+                np[i] <- attr(fit$env$parameters[[i]],
+                              "shape")
+            }
+            np <- split(np, names(np))
+            newfit <- MakeADFun(data = newdata,
+                                parameters = np, 
+                                random.start = split(newparams[random],
+                                           names(newparams[random])),
+                                map = map)
+            newfit$fn()
+            rr <- sdreport_split(newfit)
             L <- lengths(newdata)
             newdata <- newdata[L == max(L)]  ## return long/time-varying parms only (not flags etc.)
             ss2 <- (newdata
@@ -390,12 +396,17 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
                               pred_lwr = plogis(rr$value$loprob - 1.96*rr$sd$loprob),
                               pred_upr = plogis(rr$value$loprob + 1.96*rr$sd$loprob))
             )
+            ## expanded data: need to drop old values
+            if (nrow(ss2) > n_orig) {
+                ss2 <- ss2[-(1:n_orig),]
+            }
+                
         }
     } else {
         if (is.null(newparams)) {
-            ss2 <- pred_bb$simulate()$omicron
+            ss2 <- newfit$simulate()$omicron
         } else {
-            ss2 <- pred_bb$simulate(newparams)$omicron
+            ss2 <- newfit$simulate(newparams)$omicron
         }
     }
     return(ss2)
@@ -403,8 +414,9 @@ predict.logistfit <- function(fit, newdata = NULL, include_reinf = uses_reinf(fi
 
 ## generate new data (all crosses of time/province, possibly reinfection status),
 ## filling in holes (FIXME: call this complete_newdata() ?)
-mk_completedata <- function(fit) {
+mk_completedata <- function(fit, expand = FALSE) {
     dd0 <- get_data(fit)
+    n_orig <- max(lengths(dd0))
     args <- with(dd0, list(prov = unique(prov), time = unique(time)))
     if (uses_reinf(fit)) {
         args <- c(args, list(reinf = 0:1))
@@ -415,16 +427,25 @@ mk_completedata <- function(fit) {
     for (nm in names(dd)) {
         if (nm %in% names(newdata)) {
             dd[[nm]] <- newdata[[nm]]
+            if (expand) {
+                dd[[nm]] <- c(dd0[[nm]], dd[[nm]])
+            }
         } else {
             L <- length(dd[[nm]])
-            if (L > 1 && L < nrow(newdata)) {
+            if (L == n_orig) {
                 if (nm == "reinf") {
                     ## model uses reinf, but include_reinf not specified
                     if (uses_reinf(fit)) warning("setting reinf to 0 (STUB)")
                     dd[[nm]] <- rep(0, nrow(newdata))
+                    if (expand) {
+                        dd[[nm]] <- c(dd0$reinf, dd[[nm]])
+                    }
                 } else {
                     ## other variables aren't used (we think)
                     dd[[nm]] <- rep(NA_real_, nrow(newdata))
+                    if (expand) {
+                        dd[[nm]] <- c(dd0[[nm]], dd[[nm]])
+                    }
                 } ## not reinf
             } ## variable to replace
         }
@@ -495,6 +516,15 @@ get_deltar <- function(fit) {
 get_sdr <- function(fit) {
     if (!is.null(sdr <- attr(fit, "sdr"))) return(sdr)
     return(sdreport(fit, getJointPrecision = TRUE))
+}
+
+## Logistic function with imperfect testing
+baselogis <- function(tvec, loc, delta_r, lodrop, logain){
+    drop <- plogis(lodrop)
+    gain <- plogis(logain)
+
+    ptrue <- plogis((tvec-loc)*delta_r)
+    return(ptrue*(1-gain) + (1-ptrue)*drop)
 }
 
 saveEnvironment()
