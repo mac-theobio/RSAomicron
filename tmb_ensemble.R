@@ -1,12 +1,14 @@
-library(shellpipes)
-if (interactive()) {
-    rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
-}
 
 library(TMB) ## still need it to operate on TMB objects
 library(ggplot2); theme_set(theme_bw() + theme(panel.spacing = grid::unit(0, "lines")))
 library(tidyr)
 library(dplyr)
+
+library(shellpipes)
+rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+## rpcall Just works, you don't need to wrap it in if(interactive)
+## I only take htem out because they seem to sometimes confuse Carl
+## Also, Mike and I have a new convention of putting shellpipes at the end of the library list (near rpcall, rdsRead, etc.)
 
 nsim <- 500
 
