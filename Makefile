@@ -58,13 +58,24 @@ Sources += $(wildcard *.dict.tsv)
 
 ## Combined line list merged by CP 9 Dec
 ## FIXME: does order-only rule do this better than $(MAKE)?
-data/sgtf_ref.rds:
+data/%.rds:
 	$(MAKE) data
+
+## Legacy rule for the first data set we used in this repo
 sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 	$(pipeR)
-
 ## No other current sources
 ## Merging code in omike or in osac
+
+######################################################################
+
+## Side branch 2021 Dec 25 (Sat)
+
+## New set seems to have different format?
+sgtf_curr.sg.agg.Rout: sgtf_xmas.R data/sgtf_xmas.rds prov.dict.tsv 
+	$(pipeR)
+
+sgtf_ref.chop2.sg.agg.Rout:
 
 ######################################################################
 
