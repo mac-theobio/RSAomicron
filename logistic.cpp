@@ -17,17 +17,20 @@ Type objective_function<Type>::operator() ()
 	DATA_INTEGER(perfect_tests);
 
 	DATA_VECTOR(prior_logsd_logdeltar);	  // prior mean, sd
+	DATA_VECTOR(prior_logsd_reinf);	  // prior mean, sd
   
 	PARAMETER_VECTOR(loc);	  // midpoint of takeover curve (fixed effect)
 	PARAMETER(log_deltar);	      // takeover rate
 	PARAMETER(beta_reinf);		// effect of reinfection on prob of omicron
 	// FIXME: add random effects for reinf; correlated with deltar variation?
-	PARAMETER_VECTOR(b);		  // random effects vector: {deltar} x nprov
+	PARAMETER_VECTOR(b_logdeltar);		  // random effects vector: {deltar} x nprov
+	PARAMETER_VECTOR(b_reinf);		  // random effects vector: {deltar} x nprov
 	PARAMETER(lodrop);		  // log-odds of false negative for SGTF (universal)
 	PARAMETER(logain);		  // log-odds of false positive for SGTF (universal)
 	PARAMETER(log_theta);		  // log of theta (Beta dispersion parameter)
 	PARAMETER(log_sigma);		  // alternative beta dispersion parameter
 	PARAMETER(logsd_logdeltar);		   // SDs of {loc, deltar} REs
+	PARAMETER(logsd_reinf);		   // SDs of {loc, deltar} REs
 
 	// PARAMETER_VECTOR(corr);	     // correlation among SDs (unused now since only 1 RE per block)
 
@@ -57,7 +60,8 @@ Type objective_function<Type>::operator() ()
 
 	// random effect term for deltar (b is spherical/unscaled/standard-Normal)
 	for (int i=0; i<nprov; i++) {
-		res -= dnorm(b(i), Type(0), Type(1), true);
+		res -= dnorm(b_logdeltar(i), Type(0), Type(1), true);
+		res -= dnorm(b_reinf(i), Type(0), Type(1), true);
 	}
 
 	if (debug>0) std::cout << "after RE computations\n";
@@ -66,8 +70,10 @@ Type objective_function<Type>::operator() ()
 	Type s1, s2, s3;
 
 	// calculate probability
-	vector<Type> log_deltar_vec = log_deltar + exp(logsd_logdeltar)*b;
+	vector<Type> log_deltar_vec = log_deltar + exp(logsd_logdeltar)*b_logdeltar;
 	vector<Type> deltar_vec = exp(log_deltar_vec);
+	vector<Type> reinf_vec = beta_reinf+ exp(logsd_reinf)*b_reinf;
+
 	for(int i = 0; i < nobs; i++) {
 		int j = prov(i);
 		if (perfect_tests == 0) {
