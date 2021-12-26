@@ -87,4 +87,15 @@
 - power exponential priors as in WNV project?
 - *Way* premature, but could parallelize some more of the computations (internally via OpenMP, or by furrr::future_map*?)
  
+----
 
+## on using TMB for predictions
+
+- Advantages of using TMB for prediction:
+   - unified code base (i.e., the same implementation is used to fit the model as to run the model). Makes for fewer points of failure/easier to keep models in sync
+   - allows delta-method computations of any derived quantities desired
+- Disadvantages of using TMB for prediction:
+   - implementation is more complicated (see below)
+   - if we have to use `MakeADFun()` repeatedly, slow (e.g. for ensembles)
+   
+*Explanation*: we can use `fit$report()` or `sdreport(fit)` to run through the code once and report any values defined inside a `REPORT()` or `SDREPORT()` macro, respectively. 

@@ -225,6 +225,9 @@ impmakeR += tmb_ensemble
 %.tmb_ensemble.Rout: tmb_ensemble.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
+%.tmb_predict_test.Rout: tmb_predict_test.R %.tmb_fit.rds tmb_funs.rda logistic.so
+	$(pipeR)
+
 ######################################################################
 
 ## Repipe and understand?

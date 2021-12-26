@@ -355,10 +355,7 @@ predict.logistfit <- function(fit, newdata = NULL,
     }
     if (!simulate) {
         if (!confint) {
-            ## do this in R
-            ## for now assume perfect tests, ?? (don't need beta-binom params here)
-            if (!perfect_tests) stop("prediction w/o CI assumes perfect_tests, for now")
-            ## UGH!
+            ## do this in R (sigh)
             names(newparams) <- gsub("\\.[[:alpha:]]+", "", names(newparams))
             ss <- split(newparams, names(newparams))
             if (perfect_tests) {

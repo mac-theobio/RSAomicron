@@ -1,6 +1,6 @@
 library(shellpipes)
 if (interactive()) {
-    rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+    rpcall("bsfake.sg.tmb_ensemble.Rout tmb_ensemble.R bsfake.sg.lsfit.tmb_fit.rds tmb_funs.rda logistic.so")
 }
 
 library(TMB) ## still need it to operate on TMB objects
@@ -49,11 +49,17 @@ loc_vals <- (pop_vals
                     values_to = "loc")
 )
 
+shape_regex <- "^log_(theta|sigma)$"
+if (sum(grepl(shape_regex,
+              colnames(pop_vals))) != 1) {
+    stop(sprintf("columns '%s' missing or non-unique",
+                 shape_regex))
+}
 beta_shape <- (pop_vals
     |> as.data.frame()
-    |> select(log_theta)
-    ## FIXME: should allow for theta or sigma parameterization
-    |> transmute(beta_shape = exp(log_theta))
+    |> select(ll = matches(shape_regex))
+    ## select & rename
+    |> transmute(beta_shape = exp(ll))
     |> mutate(sample_no = 1:n())
 )
 
