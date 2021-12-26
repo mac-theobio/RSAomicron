@@ -7,5 +7,5 @@ dataEnd <- as.Date("2021-12-06")
 
 (rdsRead()
 	%>% filter(between(date, dataStart, dataEnd))
-) %>% rdsSave(printSummary=TRUE)
+) %>% rdsSave()
 

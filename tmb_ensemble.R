@@ -73,12 +73,18 @@ startGraphics()
 nrow(pp1 <- predict(fit))
 
 ## check that it completes
-length(predict(fit, newparams = pop_vals[1,],
+length(predict(fit, newparams = pop_vals[5,],
                perfect_tests = TRUE, confint = FALSE))
 
-nrow(pp1 <- predict(fit, newparams = pop_vals[1,],
+print(pop_vals[1,])
+
+
+
+nrow(pp1 <- predict(fit, newparams = pop_vals[5,],
                     perfect_tests = TRUE, confint = TRUE))
 
+
+print(pp1)
 
 base <- (mk_completedata(fit)[c("prov", "time", "reinf")]
     |> tibble::as_tibble()

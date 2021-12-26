@@ -1,2 +1,2 @@
-data = ~/Dropbox/correctlocation
+data = ~/Dropbox/covidSA
 
