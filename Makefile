@@ -69,13 +69,13 @@ sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv
 
 ######################################################################
 
-## Side branch 2021 Dec 25 (Sat)
+## New processing branch 2021 Dec 25 (Sat)
 
-## New set seems to have different format?
-sgtf_curr.sg.agg.Rout: sgtf_xmas.R data/sgtf_xmas.rds prov.dict.tsv 
+## We are starting now with pre-aggregated data
+sgtf2.sr.agg.Rout: reagg.R data/sgtf_xmas.rds simDates.rda
 	$(pipeR)
 
-sgtf_ref.chop2.sg.agg.Rout:
+sgtf_ref.sr.agg.Rout:
 
 ######################################################################
 
@@ -94,8 +94,15 @@ impmakeR += sg.agg
 
 ## Date stuff
 
+## Drop the last two days
 impmakeR += chop2.sr.agg
 %.chop2.sr.agg.Rout: chop2.R %.sr.agg.rds
+	$(pipeR)
+
+## Explicit window for P2
+impmakeR += ddate2.sr.agg
+## sgtf2.ddate2.sr.agg.Rout: ddate2.R
+%.ddate2.sr.agg.Rout: ddate2.R %.sr.agg.rds
 	$(pipeR)
 
 ######################################################################
@@ -106,11 +113,15 @@ impmakeR += ts
 %.ts.Rout: ts.R %.agg.rds
 	$(pipeR)
 
+######################################################################
+
+## Set a "main" date stream; is this good? 2021 Dec 26 (Sun)
 ## sgtf_ref.chop2.sr.ts.Rout:
-main.sr.ts.rds: sgtf_ref.chop2.sr.ts.rds
+## main.sr.ts.rds: sgtf_ref.chop2.sr.ts.rds
+main.sr.ts.rds: sgtf2.ddate2.sr.ts.rds
 	$(forcelink)
 
-main.sg.ts.rds: sgtf_ref.chop2.sg.ts.rds
+main.sg.ts.rds: sgtf2.ddate2.sg.ts.rds
 	$(forcelink)
 
 ######################################################################
@@ -188,14 +199,20 @@ impmakeR += tmb_fit
 ## bsfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
 ## bsfake.sg.lsfit.tmb_eval.Rout: tmb_eval.R
 ## btfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
-## sgtf_ref.chop2.sg.tmb_eval.Rout: tmb_eval.R
+## sgtf2.ddate2.sg.ltfit.tmb_eval.Rout: tmb_eval.R
+## sgtf2.ddate2.sg.lsfit.tmb_eval.Rout: tmb_eval.R
+impmakeR += tmb_eval
 %.tmb_eval.Rout: tmb_eval.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ## compare fixed, RE, pooled
+## bsfake.sg.tmb_fit_compare.Rout: tmb_fit_compare.R
+## sgtf2.ddate2.sg.tmb_fit_compare.Rout: tmb_fit_compare.R
+impmakeR += tmb_fit_compare
 %.tmb_fit_compare.Rout: tmb_fit_compare.R %.ts.rds logistic.so tmb_funs.rda
 	$(pipeR)
 
+impmakeR += tmb_ci
 %.tmb_ci.Rout: tmb_ci.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
@@ -203,6 +220,8 @@ impmakeR += tmb_fit
 	$(pipeR)
 
 ## bsfake.sg.lsfit.tmb_ensemble.Rout: tmb_ensemble.R
+## bsfake.sg.ltfit.tmb_ensemble.Rout: tmb_ensemble.R
+impmakeR += tmb_ensemble
 %.tmb_ensemble.Rout: tmb_ensemble.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
@@ -212,6 +231,7 @@ impmakeR += tmb_fit
 
 ## bsfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
 ## btfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
+## sgtf2.ddate2.sg.tmb_betaComp.Rout: tmb_betaComp.R
 %.tmb_betaComp.Rout: tmb_betaComp.R %.lsfit.tmb_fit.rds %.ltfit.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
