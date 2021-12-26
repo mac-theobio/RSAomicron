@@ -235,6 +235,8 @@ impmakeR += tmb_params
 %.tmb_params.Rout: tmb_params.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
+## sgtf2.ddate2.sg.ltfit.tmb_params.rds: tmb_params.R
+
 ######################################################################
 
 ## Compare beta formulations for tmb_fit's

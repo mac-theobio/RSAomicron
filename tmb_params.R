@@ -17,6 +17,7 @@ pop_vals <- MASS::mvrnorm(nsim,
 						  Sigma = vcov(fit, random =TRUE))
 
 ## reconstruct deltar for each province
+## FIXME: tidy this
 deltar_mat <- t(apply(as.data.frame(pop_vals),
 					1,
 					function(x) {
@@ -53,5 +54,7 @@ all_vals <- (deltar_vals
 	|> full_join(loc_vals, by = c("prov", "sample_no"))
 	|> full_join(beta_shape, by = "sample_no")
 )
+
+summary(all_vals)
 
 rdsSave(all_vals)
