@@ -1,4 +1,3 @@
-
 library(TMB) ## still need it to operate on TMB objects
 library(ggplot2); theme_set(theme_bw() + theme(panel.spacing = grid::unit(0, "lines")))
 library(tidyr)
@@ -51,11 +50,17 @@ loc_vals <- (pop_vals
                     values_to = "loc")
 )
 
+shape_regex <- "^log_(theta|sigma)$"
+if (sum(grepl(shape_regex,
+              colnames(pop_vals))) != 1) {
+    stop(sprintf("columns '%s' missing or non-unique",
+                 shape_regex))
+}
 beta_shape <- (pop_vals
     |> as.data.frame()
-    |> select(log_theta)
-    ## FIXME: should allow for theta or sigma parameterization
-    |> transmute(beta_shape = exp(log_theta))
+    |> select(ll = matches(shape_regex))
+    ## select & rename
+    |> transmute(beta_shape = exp(ll))
     |> mutate(sample_no = 1:n())
 )
 
