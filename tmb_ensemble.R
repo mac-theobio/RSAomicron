@@ -21,6 +21,8 @@ pop_vals <- MASS::mvrnorm(nsim,
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
 
+head(pop_vals)
+
 ## reconstruct deltar for each province
 deltar_mat <- t(apply(as.data.frame(pop_vals),
                     1,
