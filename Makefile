@@ -105,6 +105,12 @@ impmakeR += ddate2.sr.agg
 %.ddate2.sr.agg.Rout: ddate2.R %.sr.agg.rds
 	$(pipeR)
 
+## Lookback dates
+impmakeR += olddate.sr.agg
+## sgtf2.olddate.sr.agg.Rout: olddate.R
+%.olddate.sr.agg.Rout: olddate.R %.sr.agg.rds
+	$(pipeR)
+
 ######################################################################
 
 ## Proportion calculations
@@ -236,6 +242,7 @@ impmakeR += tmb_params
 	$(pipeR)
 
 ## sgtf2.ddate2.sg.ltfit.tmb_params.rds: tmb_params.R
+## data/outputs/sgtf2.ddate2.sg.ltfit.tmb_params.rds
 
 ######################################################################
 
