@@ -207,7 +207,6 @@ impmakeR += tmb_eval
 
 ## compare fixed, RE, pooled
 ## bsfake.sg.tmb_fit_compare.Rout: tmb_fit_compare.R
-## sgtf2.ddate2.sg.tmb_fit_compare.Rout: tmb_fit_compare.R
 impmakeR += tmb_fit_compare
 %.tmb_fit_compare.Rout: tmb_fit_compare.R %.ts.rds logistic.so tmb_funs.rda
 	$(pipeR)
