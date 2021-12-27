@@ -16,7 +16,7 @@ splitfun <- function(orig, pars) {
 
 ##' safely get levels *or* unique values of a vector that
 ##' may or may not be a factor
-get_prov_names <- function(x) {
+get_names <- function(x) {
 		if (!is.null(levels(x))) return(levels(x))
 		return(unique(x))
 }
@@ -26,7 +26,7 @@ get_prov_names <- function(x) {
 ##' @param x named object (matrix or vector)
 ##' @param names character vector to append to target names
 ##' @param fix_vars variables to disambiguate
-fix_prov_names <- function(x, names = get_prov_names(ss$prov),
+fix_prov_names <- function(x, names = get_names(ss$prov),
 													 fix_vars = "loc") {
 		for (f in fix_vars) {
 				target <- paste0("^", f)
@@ -259,7 +259,7 @@ tmb_fit <- function(data,
 																		upper = uvec,
 																		lower = lvec)
 															)
-		return(mklogistfit(tmb_betabinom, tmb_file, get_prov_names(data$prov), include_sdr = include_sdr))
+		return(mklogistfit(tmb_betabinom, tmb_file, get_names(data$prov), include_sdr = include_sdr))
 }
 
 ## extract original data frame from TMB object
