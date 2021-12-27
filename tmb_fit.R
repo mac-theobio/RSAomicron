@@ -1,24 +1,19 @@
-library(shellpipes)
 library(TMB)
 library(dplyr)
+
+library(shellpipes)
+rpcall("btfake.sg.ltfit.tmb_fit.Rout tmb_fit.R btfake.sg.ltfit.ts.rds btfake.sg.ltfit.ts.rda logistic.so tmb_funs.rda")
 
 loadEnvironments()
 soLoad()
 
 ## fit (using all defaults)
-	tt <- tmb_fit(data = rdsRead(),
+tt <- tmb_fit(data = rdsRead(),
 	two_stage = TRUE,
-	start = list(log_deltar = log(0.1),
-		lodrop = -4, logain = -7
-	),
 	upper = list(log_theta = 20),
 	lower = NULL,
-	priors = list(logsd_logdeltar =
-		prior_params(lwr=log(0.01), upr=log(0.3))
-	),
 	map = list(),  ## no fixed params
 	betabinom_param = betabinom_param,
-
 	debug_level = 0
 )
 

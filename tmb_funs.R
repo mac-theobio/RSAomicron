@@ -140,8 +140,9 @@ tmb_fit <- function(data,
 										upper = list(log_theta = 20),
 										lower = list(logsd_logdeltar = -5),
 										priors = list(logsd_logdeltar =
-																			prior_params(log(0.01), log(0.3))),
-										map = list(),
+																			prior_params(log(0.01), log(0.3)),
+                                  logsd_reinf = prior_params(-3, 3)),
+                    map = list(),
 										debug_level = 0,
 										tmb_file = NULL,
                     include_sdr = TRUE,
@@ -181,7 +182,8 @@ tmb_fit <- function(data,
 
     if (!reinf_effect) {
 				## fix reinf to starting value (== 0 by default)
-				map <- c(map, list(beta_reinf = factor(NA)))
+				map <- c(map, list(beta_reinf = factor(NA),
+                           b_reinf = factor(rep(NA, np))))
 		}
 
 		tmb_data <- c(data[data_vars],
@@ -193,15 +195,17 @@ tmb_fit <- function(data,
 				}
 		}
 		loc_start <- mean(data$time)
-		nRE <- 1
+		nRE <- 1 ## FIXME: need to reuse/adapt/adjust if we have correlated REs
 		tmb_pars_binom <- c(tmb_pars_binom,
 												list(loc = rep(loc_start, np),
-														 b = rep(0, nRE * np),
-														 logsd_logdeltar = rep(-1, nRE)))
+														 b_logdeltar = rep(0, np),
+                             b_reinf = rep(0, np),
+														 logsd_logdeltar = -1,
+                             logsd_reinf = -1))
 
 		binom_args <- list(data = tmb_data,
 											 parameters = tmb_pars_binom,
-											 random = c("b"),
+											 random = c("b_logdeltar", "b_reinf"),
 											 ## inner.method = "BFGS",
 											 inner.control = list(maxit = 1000,
 																						fail.action = rep("warning", 3)),
@@ -367,16 +371,16 @@ predict.logistfit <- function(fit, newdata = NULL,
                                lodrop, logain))
             }
         } else {
-            np <- anonymize_names(newparams)
+            newparams <- anonymize_names(newparams)
             ## restore parameters that got left out because of mapping
             ## use original names in case we have added to map in the meantime
-            for (i in names(fit$env$map)) {
-                np[i] <- attr(fit$env$parameters[[i]],
+            newparams <- split(newparams, names(newparams))
+            for (nm in names(fit$env$map)) {
+                newparams[[nm]] <- attr(fit$env$param.map[[match(nm, names(fit$env$map))]],
                               "shape")
             }
-            np <- split(np, names(np))
             newfit <- MakeADFun(data = newdata,
-                                parameters = np, 
+                                parameters = newparams, 
                                 random.start = split(newparams[random],
                                            names(newparams[random])),
                                 map = map)

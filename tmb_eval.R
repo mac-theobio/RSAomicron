@@ -1,8 +1,3 @@
-library(shellpipes)
-if (interactive()) {
-    rpcall("btfake.sg.ltfit.tmb_eval.Rout tmb_eval.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
-}
-
 library(broom.mixed)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw() + theme(panel.spacing = grid::unit(0, "lines")))
@@ -16,12 +11,16 @@ reinf_colours <- c("black", "red")
 
 plot_simple <- FALSE
 
-startGraphics()
+library(shellpipes)
+rpcall("btfake.sg.ltfit.tmb_eval.Rout tmb_eval.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
 
 ## includes fits, sim data (ss), file name/type info
 fit <- rdsRead()
 loadEnvironments()
 soLoad()  ## still need to reload dynamic library
+
+startGraphics()
+
 
 ## predicted probabilities:
 summary(fit$report()$prob)
