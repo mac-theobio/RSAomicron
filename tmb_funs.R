@@ -183,7 +183,9 @@ tmb_fit <- function(data,
     if (!reinf_effect) {
 				## fix reinf to starting value (== 0 by default)
 				map <- c(map, list(beta_reinf = factor(NA),
-                           b_reinf = factor(rep(NA, np))))
+                           b_reinf = factor(rep(NA, np)),
+                           logsd_reinf = factor(NA)
+                           ))
 		}
 
 		tmb_data <- c(data[data_vars],
