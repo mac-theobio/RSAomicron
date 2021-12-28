@@ -66,7 +66,9 @@
 
 ### cosmetic/cleanup
 
+- fix parameter ordering in predict_logistfit to avoid warnings/messages
 - unify shape handling for betabinomial
+
 ### medium
 
 - explore reinf fits
