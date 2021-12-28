@@ -12,8 +12,8 @@ reinf_colours <- c("black", "red")
 plot_simple <- FALSE
 
 library(shellpipes)
-## rpcall("btfake.sr.ltfit.tmb_eval.Rout tmb_eval.R btfake.sr.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
-rpcall("bsfake.sr.lsfit.tmb_eval.Rout tmb_eval.R bsfake.sr.lsfit.tmb_fit.rds tmb_funs.rda logistic.so")
+rpcall("btfake.sr.ltfit.tmb_eval.Rout tmb_eval.R btfake.sr.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+
 
 
 ## includes fits, sim data (ss), file name/type info

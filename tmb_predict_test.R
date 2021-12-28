@@ -6,11 +6,33 @@ library(dplyr)
 set.seed(101)
 
 library(shellpipes)
-rpcall("bsfake.sg.tmb_predict_test.Rout tmb_ensemble.R bsfake.sg.lsfit.tmb_fit.rds tmb_funs.rda logistic.so")
+rpcall("btfake.sr.ltfit.tmb_predict_test.Rout tmb_predict_test.R btfake.sr.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+## rpcall("bsfake.sg.tmb_predict_test.Rout tmb_ensemble.R bsfake.sg.lsfit.tmb_fit.rds tmb_funs.rda logistic.so")
 fit <- rdsRead()
 loadEnvironments()
 soLoad()
 
+diag_plot <- function(pA, pB, points = FALSE) {
+    vars <- c("prov", "time", "reinf", "pred", "Rpred")
+    dd <- (pB
+        |> mutate(Rpred = pA)
+        |> dplyr::select(any_of(vars))
+        |> pivot_longer(c(pred, Rpred), names_to="type")
+    )
+    gg0 <- (ggplot(dd, aes(time, value, colour = type))
+        + geom_line()
+        + facet_wrap(~prov)
+    )
+    if (points) {
+        gg0 <- gg0 + geom_point()
+    }
+    if ("reinf" %in% names(pB)) {
+        gg0 <- gg0 + aes(linetype = factor(reinf), shape = factor(reinf)) +
+            scale_shape_manual(values = c(1, 16))
+    }
+    return(gg0)
+}
+    
 ## want all combinations of
 ## * expand (yes/no)
 ## * perfect tests (yes/no)
@@ -23,6 +45,7 @@ print(b_logdeltar_vals <- setNames(cc[names(cc) == "b_logdeltar"],
                               get_prov_names(fit)))
 
 ## old params, imperfect tests
+
 p1A <- predict(fit, confint = FALSE)
 p1B <- predict(fit, confint = TRUE)
 expect_equal(length(p1A), nrow(p1B))

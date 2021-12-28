@@ -124,9 +124,16 @@ Type objective_function<Type>::operator() ()
 	Type nlprior = 0;
 
 	if (!notFinite(prior_logsd_logdeltar(0))) {
-		nlprior = -1*dnorm(logsd_logdeltar,
+		nlprior -= 1*dnorm(logsd_logdeltar,
 				   prior_logsd_logdeltar(0),
 				   prior_logsd_logdeltar(1),
+				   true);
+	}
+
+	if (!notFinite(prior_logsd_reinf(0))) {
+		nlprior -= 1*dnorm(logsd_reinf,
+					 prior_logsd_reinf(0),
+					 prior_logsd_reinf(1),
 				   true);
 	}
 

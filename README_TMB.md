@@ -60,6 +60,7 @@
 ### high priority
 
 - why are some (but not all) reinf-RE CIs wonky?
+- why are Wald/delta-method CIs for EC (with btfake) wonky?
 - tmb_fit switch to turn off reinf REs?
 - document `tmb_compare.R` (fixed vs pooled vs RE)
 - outputs for province-specific beta-reinf values (parallel to deltar)
@@ -71,6 +72,7 @@
 - improve print method for logistfit objects? (named coeffs, etc.)?
 - `get_deltar` method for newparams, w/ and w/o CIs ? (parallel to predict method). Or flag for predict.logistfit?
 - refactor predict.logistfit?
+- make sure predictions (when confint = TRUE) are arranged by time (after completion/removal of orig data - why is this happening?)
 
 ### medium
 

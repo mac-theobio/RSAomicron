@@ -57,3 +57,7 @@ gg0 <- (ggplot(ensemble, aes(time, pred, ymin = pred_lwr, ymax = pred_upr))
 ## orange fill (light)/solid black line is ensemble median and quantiles
 ## blue fill (dark)/dashed blue line is MLE prediction and Wald CIs
 print(gg0)
+
+## where did EC Wald CIs go?
+## ensemble |> filter(prov == "EC")
+## pp1 |> filter(prov == "EC") |> arrange(time)
