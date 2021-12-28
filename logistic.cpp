@@ -82,10 +82,10 @@ Type objective_function<Type>::operator() ()
 						// deltar includes province-specific REs
 						deltar_vec(j),
 						lodrop, logain,
-						beta_reinf*reinf(i)
+						reinf_vec(j)*reinf(i)
 						);
 		} else {
-			prob(i) = invlogit(deltar_vec(j)*(time(i) - loc(j)) + beta_reinf*reinf(i));
+			prob(i) = invlogit(deltar_vec(j)*(time(i) - loc(j)) + reinf_vec(j)*reinf(i));
 		}
 
 		// calculate neg log likelihood

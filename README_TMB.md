@@ -68,6 +68,9 @@
 
 - fix parameter ordering in predict_logistfit to avoid warnings/messages
 - unify shape handling for betabinomial
+- improve print method for logistfit objects? (named coeffs, etc.)?
+- `get_deltar` method for newparams, w/ and w/o CIs ? (parallel to predict method). Or flag for predict.logistfit?
+- refactor predict.logistfit?
 
 ### medium
 
