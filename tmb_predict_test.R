@@ -24,6 +24,9 @@ print(b_logdeltar_vals <- setNames(cc[names(cc) == "b_logdeltar"],
 ## between pred and rawpred. Suggests 'pred' is not getting
 ## the right RE starting value/ineffective?
 
+p0 <- predict(fit, confint = FALSE)
+p1 <- predict(fit, confint = TRUE)
+
 ## hand computation for GP at time == 50:
 raw_calc <- with(as.list(cc),
      baselogis(50, loc.GP, exp(log_deltar + b_logdeltar_vals[["GP"]]), lodrop, logain))
@@ -35,8 +38,6 @@ nore_calc <- with(as.list(cc),
      baselogis(50, loc.GP, exp(log_deltar), lodrop, logain))
 ## closer to pred but not identical??
 ## should both be *without* perfect tests
-p0 <- predict(fit, confint = FALSE)
-p1 <- predict(fit, confint = TRUE)
 
 p1 <- (p1
     |> mutate(rawpred = p0)
