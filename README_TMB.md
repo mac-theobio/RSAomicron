@@ -59,10 +59,10 @@
 
 ### high priority
 
-- finish writing prediction tests/comparisons
-- sort out missing SEs/CIs for SR fits with reinf REs
+- why are some (but not all) reinf-RE CIs wonky?
 - tmb_fit switch to turn off reinf REs?
-- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value. Fixed effects are bad, especially with fake data, because several provinces have complete separation or close to it; if we make the SD of deltar large, the deltar estimates go as far toward ±∞ as we let them ... Document this.
+- document `tmb_compare.R` (fixed vs pooled vs RE)
+- outputs for province-specific beta-reinf values (parallel to deltar)
 
 ### cosmetic/cleanup
 
@@ -75,7 +75,6 @@
 ### medium
 
 - explore reinf fits
-- random effects (especially of reinf)
 - importance sampling? 
 - `tmbstan`? (will need more priors?)
    - works, sort of, but we probably need priors on deltar, lodrop, logain to keep out of trouble
