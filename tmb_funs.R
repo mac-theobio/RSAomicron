@@ -360,17 +360,22 @@ predict.logistfit <- function(fit, newdata = NULL,
         ##  rather than hacking environment
     }
     if (!simulate) {
+        newparams_vec <- newparams
         newparams <- anonymize_names(newparams)
         newparams <- split(newparams, names(newparams))
+        browser()
         if (!confint) {
+            pred_env <- c(newdata, newparams)
+            ## FIXME: doesn't include RE in beta_reinf
+            b_deltar <- with(pred_env, exp(log_deltar + exp(logsd_logdeltar)*b_logdeltar))
             ## do this in R (sigh)
             if (perfect_tests) {
-                ss2 <- with(c(newdata, newparams),
-                 plogis((exp(log_deltar + b_logdeltar[prov]))*(time-loc[prov])))
+                ss2 <- with(pred_env,
+                            plogis(b_deltar[prov])*(time-loc[prov]))
             } else {
-                ss2 <- with(c(newdata, newparams),
-                     baselogis(time, loc[prov], exp(log_deltar + b_logdeltar[prov]),
-                               lodrop, logain))
+                ss2 <- with(pred_env,
+                            baselogis(time, loc[prov], b_deltar[prov],
+                                      lodrop, logain))
             }
         } else {
             ## restore parameters that got left out because of mapping
@@ -381,8 +386,7 @@ predict.logistfit <- function(fit, newdata = NULL,
             }
             newfit <- MakeADFun(data = newdata,
                                 parameters = newparams, 
-                                random.start = split(newparams[random],
-                                           names(newparams[random])),
+                                random.start = newparams_vec[random],
                                 map = map)
             newfit$fn()
             rr <- sdreport_split(newfit)
