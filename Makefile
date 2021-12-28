@@ -105,6 +105,12 @@ impmakeR += ddate2.sr.agg
 %.ddate2.sr.agg.Rout: ddate2.R %.sr.agg.rds
 	$(pipeR)
 
+## Lookback dates
+impmakeR += olddate.sr.agg
+## sgtf2.olddate.sr.agg.Rout: olddate.R
+%.olddate.sr.agg.Rout: olddate.R %.sr.agg.rds
+	$(pipeR)
+
 ######################################################################
 
 ## Proportion calculations
@@ -234,11 +240,14 @@ impmakeR += tmb_ensemble
 
 ## Repipe and understand?
 ## sgtf2.ddate2.sg.ltfit.tmb_params.Rout: tmb_params.R
+## FIXME: Works only for theta parameterization
 impmakeR += tmb_params
 %.tmb_params.Rout: tmb_params.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ## sgtf2.ddate2.sg.ltfit.tmb_params.rds: tmb_params.R
+## sgtf2.olddate.sg.ltfit.tmb_params.rds: tmb_params.R
+## NOT a target data/outputs/sgtf2.ddate2.sg.ltfit.tmb_params.rds
 
 ######################################################################
 
@@ -247,6 +256,7 @@ impmakeR += tmb_params
 ## bsfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
 ## btfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
 ## sgtf2.ddate2.sg.tmb_betaComp.Rout: tmb_betaComp.R
+## sgtf2.olddate.sg.tmb_betaComp.Rout: tmb_betaComp.R
 %.tmb_betaComp.Rout: tmb_betaComp.R %.lsfit.tmb_fit.rds %.ltfit.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
