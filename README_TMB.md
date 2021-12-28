@@ -59,6 +59,7 @@
 
 ### high priority
 
+- inspect remaining wonky CIs (for fake data: 
 - why are some (but not all) reinf-RE CIs wonky?
 - why are Wald/delta-method CIs for EC (with btfake) wonky?
 - tmb_fit switch to turn off reinf REs?

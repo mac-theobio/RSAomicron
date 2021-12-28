@@ -348,11 +348,12 @@ predict.logistfit <- function(fit, newdata = NULL,
         if (!confint) {
             pred_env <- c(newdata, newparams)
             b_deltar <- with(pred_env, exp(log_deltar + exp(logsd_logdeltar)*b_logdeltar))
-            ## reinfvec to disambiguate from beta_reinf in params list
-            b_reinfvec <- with(pred_env, beta_reinf + exp(logsd_reinf)*b_reinf)
             if (!uses_reinf(fit)) {
-                beta_reinf <- 0
-                b_reinfvec <- 0
+                pn <- get_prov_names(fit)
+                b_reinfvec <- setNames(rep(0, length(pn)), pn)
+            } else {
+                ## reinfvec to disambiguate from beta_reinf in params list
+                b_reinfvec <- with(pred_env, beta_reinf + exp(logsd_reinf)*b_reinf)
             }
             ## do this in R (sigh)
             if (perfect_tests) {
