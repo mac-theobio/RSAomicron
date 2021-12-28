@@ -64,6 +64,7 @@
 
 ### cosmetic/cleanup
 
+- unify shape handling for betabinomial
 ### medium
 
 - explore reinf fits

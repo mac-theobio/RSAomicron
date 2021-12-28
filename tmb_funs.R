@@ -371,7 +371,7 @@ predict.logistfit <- function(fit, newdata = NULL,
             ## do this in R (sigh)
             if (perfect_tests) {
                 ss2 <- with(pred_env,
-                            plogis(b_deltar[prov])*(time-loc[prov]))
+                            plogis(b_deltar[prov]*(time-loc[prov])))
             } else {
                 ss2 <- with(pred_env,
                             baselogis(time, loc[prov], b_deltar[prov],

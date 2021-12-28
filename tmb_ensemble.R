@@ -25,11 +25,12 @@ head(pop_vals)
 
 ## reconstruct deltar for each province
 deltar_mat <- t(apply(as.data.frame(pop_vals),
-                    1,
+                    MARGIN = 1,
                     function(x) {
-                        exp(x[names(x) == "b_logdeltar"] + x[["log_deltar"]])
+                        exp(exp(x[["logsd_logdeltar"]])*x[names(x) == "b_logdeltar"] + x[["log_deltar"]])
                     }))
 colnames(deltar_mat) <- get_prov_names(fit)
+dim(deltar_mat)
 
 deltar_vals <- (deltar_mat
     |> as.data.frame()
