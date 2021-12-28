@@ -363,7 +363,6 @@ predict.logistfit <- function(fit, newdata = NULL,
         newparams_vec <- newparams
         newparams <- anonymize_names(newparams)
         newparams <- split(newparams, names(newparams))
-        ## browser()
         if (!confint) {
             pred_env <- c(newdata, newparams)
             ## FIXME: doesn't include RE in beta_reinf

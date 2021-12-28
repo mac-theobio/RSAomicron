@@ -19,77 +19,10 @@ pop_vals <- MASS::mvrnorm(nsim,
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
 colnames(pop_vals)
-head(pop_vals)
-
-## reconstruct deltar for each province
-deltar_mat <- t(apply(as.data.frame(pop_vals),
-                    MARGIN = 1,
-                    function(x) {
-                        exp(exp(x[["logsd_logdeltar"]])*x[names(x) == "b_logdeltar"] + x[["log_deltar"]])
-                    }))
-colnames(deltar_mat) <- get_prov_names(fit)
-dim(deltar_mat)
-
-deltar_vals <- (deltar_mat
-    |> as.data.frame()
-    |> mutate(sample_no = 1:n())
-    |> pivot_longer(-sample_no,
-                    names_to = "prov",
-                    values_to = "deltar")
-)
-
-loc_vals <- (pop_vals
-    |> as.data.frame()
-    |> select(starts_with("loc"))
-    |> rename_with(stringr::str_remove, pattern = "loc\\.")
-    |> mutate(sample_no = 1:n())
-    |> pivot_longer(-sample_no,
-                    names_to = "prov",
-                    values_to = "loc")
-)
-
-shape_regex <- "^log_(theta|sigma)$"
-if (sum(grepl(shape_regex,
-              colnames(pop_vals))) != 1) {
-    stop(sprintf("columns '%s' missing or non-unique",
-                 shape_regex))
-}
-beta_shape <- (pop_vals
-    |> as.data.frame()
-    |> select(ll = matches(shape_regex))
-    ## select & rename
-    |> transmute(beta_shape = exp(ll))
-    |> mutate(sample_no = 1:n())
-)
-
-all_vals <- (deltar_vals
-    |> full_join(loc_vals, by = c("prov", "sample_no"))
-    |> full_join(beta_shape, by = "sample_no")
-)
-
-rdsSave(all_vals)
-    
-## perfect_tests is problematic, but we only want the
-## complete data
-## this is inefficient, could maybe use mk_completedata directly?
 
 startGraphics()
-## FIXME: split into two files?
-nrow(pp1 <- predict(fit))
 
-## check that it completes
-length(predict(fit, newparams = pop_vals[5,],
-               perfect_tests = TRUE, confint = FALSE))
-
-print(pop_vals[1,])
-
-
-
-nrow(pp1 <- predict(fit, newparams = pop_vals[5,],
-                    perfect_tests = TRUE, confint = TRUE))
-
-
-print(pp1)
+pp1 <- predict(fit, perfect_tests = TRUE, confint = TRUE)
 
 base <- (mk_completedata(fit)[c("prov", "time", "reinf")]
     |> tibble::as_tibble()
@@ -97,12 +30,14 @@ base <- (mk_completedata(fit)[c("prov", "time", "reinf")]
 ensemble0 <- list()
 pb <- txtProgressBar(style = 3, max = nsim)
 for (i in 1:nsim) {
-    setTxtProgressBar(pb, i)
+    if (interactive()) setTxtProgressBar(pb, i)
     ensemble0[[i]] <- predict(fit, newparams = pop_vals[i,], perfect_tests = TRUE, confint = FALSE)
 }
 close(pb)
 
-ensemble <- (bind_cols(base, ensemble0)
+ensemble <- (ensemble0
+    |> setNames(paste0("s",1:nsim))
+    |> bind_cols(base)
     |> pivot_longer(-c(prov, time))
     |> group_by(prov, time)
     |> summarise(pred = quantile(value, 0.5),
@@ -113,22 +48,12 @@ ensemble <- (bind_cols(base, ensemble0)
 
 gg0 <- (ggplot(ensemble, aes(time, pred, ymin = pred_lwr, ymax = pred_upr))
     + geom_line()
-    + geom_ribbon(alpha = 0.2, colour = NA)
+    + geom_ribbon(alpha = 0.4, colour = NA, fill = "orange")
     + facet_wrap(~prov)
+    + geom_line(data = pp1, colour = "blue", lty = 2)
+    + geom_ribbon(data = pp1, alpha = 0.2, colour = NA, fill = "blue")
 )
 
+## orange fill (light)/solid black line is ensemble median and quantiles
+## blue fill (dark)/dashed blue line is MLE prediction and Wald CIs
 print(gg0)
-
-## compare ensemble and Wald.  Not sure why ensemble is so much larger: think it may have to do with whether REs are held fixed during CI calculation in sdreport?
-
-print(gg0
-       + geom_line(data = pp1, colour = "blue", lty = 2)
-       + geom_ribbon(data = pp1, fill = "blue", alpha = 0.2, colour = NA)
-       )
-      
-    
-
-
-
-
-
