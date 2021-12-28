@@ -5,8 +5,6 @@ library(dplyr)
 
 library(shellpipes)
 rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
-## rpcall Just works, you don't need to wrap it in if(interactive)
-## BMB: it will be correctly overridden if it's called via make, right?
 
 nsim <- 500
 

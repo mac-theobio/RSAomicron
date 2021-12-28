@@ -2,7 +2,9 @@ library(TMB) ## still need it to operate on TMB objects
 library(tidyr)
 library(dplyr)
 
+
 library(shellpipes)
+rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
 
 nsim <- 500
 
@@ -17,12 +19,12 @@ pop_vals <- MASS::mvrnorm(nsim,
 						  Sigma = vcov(fit, random =TRUE))
 
 ## reconstruct deltar for each province
-## FIXME: tidy this
+## FIXME: tidy this (rowwise?)
 deltar_mat <- t(apply(as.data.frame(pop_vals),
-					1,
-					function(x) {
-						exp(x[names(x) == "b"] + x[["log_deltar"]])
-					}))
+                      MARGIN = 1,
+                      function(x) {
+                          exp(exp(x[["logsd_logdeltar"]])*x[names(x) == "b_logdeltar"] + x[["log_deltar"]])
+                      }))
 colnames(deltar_mat) <- get_prov_names(fit)
 
 deltar_vals <- (deltar_mat
@@ -43,11 +45,18 @@ loc_vals <- (pop_vals
 					values_to = "loc")
 )
 
+shape_regex <- "^log_(theta|sigma)$"
+if (sum(grepl(shape_regex,
+              colnames(pop_vals))) != 1) {
+    stop(sprintf("columns '%s' missing or non-unique",
+                 shape_regex))
+}
 beta_shape <- (pop_vals
-	|> as.data.frame()
-	|> select(log_theta)
-	|> transmute(beta_shape = exp(log_theta))
-	|> mutate(sample_no = 1:n())
+    |> as.data.frame()
+    |> select(ll = matches(shape_regex))
+    ## select & rename
+    |> transmute(beta_shape = exp(ll))
+    |> mutate(sample_no = 1:n())
 )
 
 all_vals <- (deltar_vals
