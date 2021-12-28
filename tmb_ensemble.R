@@ -6,8 +6,7 @@ library(dplyr)
 library(shellpipes)
 rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
 ## rpcall Just works, you don't need to wrap it in if(interactive)
-## I only take htem out because they seem to sometimes confuse Carl
-## Also, Mike and I have a new convention of putting shellpipes at the end of the library list (near rpcall, rdsRead, etc.)
+## BMB: it will be correctly overridden if it's called via make, right?
 
 nsim <- 500
 
@@ -21,14 +20,14 @@ pop_vals <- MASS::mvrnorm(nsim,
                           mu = coef(fit, random = TRUE),
                           Sigma = vcov(fit, random =TRUE))
 dim(pop_vals)
-
+colnames(pop_vals)
 head(pop_vals)
 
 ## reconstruct deltar for each province
 deltar_mat <- t(apply(as.data.frame(pop_vals),
                     1,
                     function(x) {
-                        exp(x[names(x) == "b"] + x[["log_deltar"]])
+                        exp(x[names(x) == "b_logdeltar"] + x[["log_deltar"]])
                     }))
 colnames(deltar_mat) <- get_prov_names(fit)
 

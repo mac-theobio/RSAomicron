@@ -360,23 +360,21 @@ predict.logistfit <- function(fit, newdata = NULL,
         ##  rather than hacking environment
     }
     if (!simulate) {
+        newparams <- anonymize_names(newparams)
+        newparams <- split(newparams, names(newparams))
         if (!confint) {
             ## do this in R (sigh)
-            names(newparams) <- gsub("\\.[[:alpha:]]+", "", names(newparams))
-            ss <- split(newparams, names(newparams))
             if (perfect_tests) {
-                ss2 <- with(c(newdata, ss),
-                 plogis((exp(log_deltar + b[prov]))*(time-loc[prov])))
+                ss2 <- with(c(newdata, newparams),
+                 plogis((exp(log_deltar + b_logdeltar[prov]))*(time-loc[prov])))
             } else {
-                ss2 <- with(c(newdata, ss),
-                     baselogis(time, loc[prov], exp(log_deltar + b[prov]),
+                ss2 <- with(c(newdata, newparams),
+                     baselogis(time, loc[prov], exp(log_deltar + b_logdeltar[prov]),
                                lodrop, logain))
             }
         } else {
-            newparams <- anonymize_names(newparams)
             ## restore parameters that got left out because of mapping
             ## use original names in case we have added to map in the meantime
-            newparams <- split(newparams, names(newparams))
             for (nm in names(fit$env$map)) {
                 newparams[[nm]] <- attr(fit$env$param.map[[match(nm, names(fit$env$map))]],
                               "shape")
