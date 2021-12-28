@@ -59,8 +59,10 @@
 
 ### high priority
 
-- explore current results more; diagnostics??
-- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value. Fixed effects are bad, especially with fake data, because several provinces have complete separation or close to it; if we make the SD of deltar large, the deltar estimates go as far toward ±∞ as we let them ...
+- finish writing prediction tests/comparisons
+- sort out missing SEs/CIs for SR fits with reinf REs
+- tmb_fit switch to turn off reinf REs?
+- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value. Fixed effects are bad, especially with fake data, because several provinces have complete separation or close to it; if we make the SD of deltar large, the deltar estimates go as far toward ±∞ as we let them ... Document this.
 
 ### cosmetic/cleanup
 
