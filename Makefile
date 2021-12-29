@@ -252,12 +252,20 @@ impmakeR += tmb_params
 ## sgtf2.olddate.sg.ltfit.tmb_params.rds: tmb_params.R
 ## NOT a target data/outputs/sgtf2.ddate2.sg.ltfit.tmb_params.rds
 
+## btfake.sr.ltfit.tmb_ensemble.Rout:
+## sgtf2.olddate.sr.ltfit.tmb_eval.Rout:
+## sgtf2.ddate2.sr.ltfit.tmb_eval.Rout:
+## sgtf2.ddate2.sr.ltfit.tmb_ensemble.Rout:
+## sgtf2.ddate2.sr.ltfit.tmb_ci.Rout:
+## sgtf2.ddate2.sr.ltfit.tmb_ci_plot.Rout:
+
 ######################################################################
 
 ## Compare beta formulations for tmb_fit's
 
 ## bsfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
 ## btfake.sg.tmb_betaComp.Rout: tmb_betaComp.R
+## sgtf2.ddate2.sr.tmb_betaComp.Rout: tmb_betaComp.R
 ## sgtf2.ddate2.sg.tmb_betaComp.Rout: tmb_betaComp.R
 ## sgtf2.olddate.sg.tmb_betaComp.Rout: tmb_betaComp.R
 %.tmb_betaComp.Rout: tmb_betaComp.R %.lsfit.tmb_fit.rds %.ltfit.tmb_fit.rds tmb_funs.rda logistic.so

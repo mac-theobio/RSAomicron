@@ -65,3 +65,17 @@ We will pick a parameterization using δAIC < 2
 We will ask Ben to try to add reinf×prov.
 
 We are making an a priori call that we don't think we have enough for province×date – if there's extra time we can do this by a formal test.
+
+
+2021 Dec 29 (Wed)
+=================
+
+Are we ready to run the real SR model?
+
+Let's try the δAIC, even though it might be a bit awkward to get a different answer.
+* δAIC result is similar! What about the real result?
+
+We will look at eval plots and ensemble plots briefly before looking at the answer.
+
+Result looks reasonable; CI on reinf parameter surprisingly high, perhaps due to non-drop omicrons
+* Will try again on a truncated data set (as pre-planned, for that reason)
