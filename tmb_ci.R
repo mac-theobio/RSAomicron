@@ -1,6 +1,6 @@
 library(shellpipes)
 library(broom.mixed)
-if (packageVersion("broom.mixed") < "0.2.9.1") stop("please install latest version of broom.mixed via remotes::install('bbolker/broom.mixed')")
+if (packageVersion("broom.mixed") < "0.2.9.2") stop("please install latest version of broom.mixed via remotes::install('bbolker/broom.mixed')")
 library(dplyr)
 library(TMB) ## still need it to operate on TMB objects
 
