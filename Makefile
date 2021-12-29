@@ -70,8 +70,8 @@ sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv
 ######################################################################
 
 ## New processing branch 2021 Dec 25 (Sat)
+## Starting now with pre-aggregated data
 
-## We are starting now with pre-aggregated data
 sgtf2.sr.agg.Rout: reagg.R data/sgtf_xmas.rds simDates.rda
 	$(pipeR)
 
@@ -202,6 +202,8 @@ impmakeR += tmb_fit
 
 ## Evaluate fits
 
+## bsfake.sr.lsfit.tmb_eval.Rout: tmb_eval.R
+
 ## bsfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
 ## bsfake.sg.lsfit.tmb_eval.Rout: tmb_eval.R
 ## btfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
@@ -222,6 +224,7 @@ impmakeR += tmb_ci
 %.tmb_ci.Rout: tmb_ci.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
+## sgtf2.ddate2.sg.lsfit.tmb_ci_plot.Rout: tmb_eval.R
 %.tmb_ci_plot.Rout: tmb_ci_plot.R %.tmb_ci.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
