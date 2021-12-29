@@ -257,7 +257,7 @@ impmakeR += tmb_params
 ## sgtf2.ddate2.sr.ltfit.tmb_eval.Rout:
 ## sgtf2.ddate2.sr.ltfit.tmb_ensemble.Rout:
 ## sgtf2.ddate2.sr.ltfit.tmb_ci.Rout:
-## sgtf2.olddate.sr.ltfit.tmb_ci.Rout:
+## sgtf2.ddate2.sr.ltfit.tmb_ci_plot.Rout:
 
 ######################################################################
 
