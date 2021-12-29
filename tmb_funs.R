@@ -27,17 +27,17 @@ get_names <- function(x) {
 ##' @param names character vector to append to target names
 ##' @param fix_vars variables to disambiguate
 fix_prov_names <- function(x, names = get_names(ss$prov),
-													 fix_vars = "loc") {
-		for (f in fix_vars) {
-				target <- paste0("^", f)
-				repl <- paste(f, names, sep = ".")
-				if (!is.null(dim(x))) {
-						colnames(x)[grepl(target, colnames(x))] <- repl
-				} else {
-						names(x)[grepl(target, names(x))] <- repl
-				}
-		}
-		return(x)
+                           fix_vars = "loc") {
+    for (f in fix_vars) {
+        target <- paste0("^", f)
+        repl <- paste(f, names, sep = ".")
+        if (!is.null(dim(x))) {
+            colnames(x)[grepl(target, colnames(x))] <- repl
+        } else {
+            names(x)[grepl(target, names(x))] <- repl
+        }
+    }
+    return(x)
 }
 
 anonymize_names <- function(x) {
@@ -52,6 +52,7 @@ set_trace <- function(obj, trace = TRUE) {
 		return(invisible(NULL))
 }
 
+## FIXME: separate coef.logistfit that sanitizes/disambiguates province-specific values?
 coef.TMB <- function(x, random = FALSE) {
 		ee <- environment(x$fn)
 		r <- ee$last.par.best
@@ -61,6 +62,7 @@ coef.TMB <- function(x, random = FALSE) {
 		}
 		return(r)
 }
+
 vcov.TMB <- function(x, random = FALSE, use_numDeriv = FALSE) {
     cc <- coef(x, random = random)
     if (use_numDeriv) {
@@ -89,26 +91,6 @@ logLik.TMB <- function(x) {
 print.TMB <- function(x) {
 		cat("TMB model\n\nParameters:\n",x$par,"\n")
 		return(invisible(x))
-}
-
-## https://stackoverflow.com/questions/9965577/r-copy-move-one-environment-to-another
-cloneEnv <- function(envir, deep = TRUE) {
-		if(deep) {
-				clone <- list2env(rapply(as.list(envir, all.names = TRUE), cloneEnv, classes = "environment", how = "replace"), parent = parent.env(envir))
-		} else {
-				clone <- list2env(as.list(envir, all.names = TRUE), parent = parent.env(envir))
-		}
-		attributes(clone) <- attributes(envir)
-		return(clone)
-}
-copyEnv <- function(e1, debug = FALSE) {
-		e2 <- new.env()
-		objs <- setdiff(ls(e1, all.names=TRUE), "...")
-		for (n in objs) {
-				if (debug) cat(n, "\n")
-				assign(n, get(n, e1), e2)
-		}
-		return(e2)
 }
 
 ## compute mean and SD of Gaussian prior from lower/upper bounds of
@@ -363,19 +345,24 @@ predict.logistfit <- function(fit, newdata = NULL,
         newparams_vec <- newparams
         newparams <- anonymize_names(newparams)
         newparams <- split(newparams, names(newparams))
-        ## browser()
         if (!confint) {
             pred_env <- c(newdata, newparams)
-            ## FIXME: doesn't include RE in beta_reinf
             b_deltar <- with(pred_env, exp(log_deltar + exp(logsd_logdeltar)*b_logdeltar))
+            if (!uses_reinf(fit)) {
+                pn <- get_prov_names(fit)
+                b_reinfvec <- setNames(rep(0, length(pn)), pn)
+            } else {
+                ## reinfvec to disambiguate from beta_reinf in params list
+                b_reinfvec <- with(pred_env, beta_reinf + exp(logsd_reinf)*b_reinf)
+            }
             ## do this in R (sigh)
             if (perfect_tests) {
                 ss2 <- with(pred_env,
-                            plogis(b_deltar[prov]*(time-loc[prov])))
+                            plogis(b_deltar[prov]*(time-loc[prov]) + b_reinfvec[prov]*reinf))
             } else {
                 ss2 <- with(pred_env,
                             baselogis(time, loc[prov], b_deltar[prov],
-                                      lodrop, logain))
+                                      lodrop, logain, b_reinfvec[prov]*reinf))
             }
         } else {
             ## restore parameters that got left out because of mapping
@@ -524,11 +511,11 @@ get_sdr <- function(fit) {
 }
 
 ## Logistic function with imperfect testing
-baselogis <- function(tvec, loc, delta_r, lodrop, logain){
+baselogis <- function(tvec, loc, delta_r, lodrop, logain, intercept = 0) {
     drop <- plogis(lodrop)
     gain <- plogis(logain)
 
-    ptrue <- plogis((tvec-loc)*delta_r)
+    ptrue <- plogis((tvec-loc)*delta_r + intercept)
     return(ptrue*(1-gain) + (1-ptrue)*drop)
 }
 

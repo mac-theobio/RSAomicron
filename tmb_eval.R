@@ -12,7 +12,9 @@ reinf_colours <- c("black", "red")
 plot_simple <- FALSE
 
 library(shellpipes)
-rpcall("btfake.sg.ltfit.tmb_eval.Rout tmb_eval.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+rpcall("btfake.sr.ltfit.tmb_eval.Rout tmb_eval.R btfake.sr.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
+
+
 
 ## includes fits, sim data (ss), file name/type info
 fit <- rdsRead()
@@ -83,8 +85,9 @@ gg1 <- (ggplot(ss0, aes(time))
 )
 if (uses_reinf(fit)) {
     gg1 <- (gg1
-        + aes(shape = reinf, linetype = reinf, colour = reinf, group = reinf)
+        + aes(shape = reinf, linetype = reinf, colour = reinf, group = reinf, fill = reinf)
         + scale_colour_manual(values = reinf_colours)
+        + scale_fill_manual(values = reinf_colours)
     )
 }
 

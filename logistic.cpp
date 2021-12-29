@@ -82,10 +82,10 @@ Type objective_function<Type>::operator() ()
 						// deltar includes province-specific REs
 						deltar_vec(j),
 						lodrop, logain,
-						beta_reinf*reinf(i)
+						reinf_vec(j)*reinf(i)
 						);
 		} else {
-			prob(i) = invlogit(deltar_vec(j)*(time(i) - loc(j)) + beta_reinf*reinf(i));
+			prob(i) = invlogit(deltar_vec(j)*(time(i) - loc(j)) + reinf_vec(j)*reinf(i));
 		}
 
 		// calculate neg log likelihood
@@ -124,9 +124,16 @@ Type objective_function<Type>::operator() ()
 	Type nlprior = 0;
 
 	if (!notFinite(prior_logsd_logdeltar(0))) {
-		nlprior = -1*dnorm(logsd_logdeltar,
+		nlprior -= 1*dnorm(logsd_logdeltar,
 				   prior_logsd_logdeltar(0),
 				   prior_logsd_logdeltar(1),
+				   true);
+	}
+
+	if (!notFinite(prior_logsd_reinf(0))) {
+		nlprior -= 1*dnorm(logsd_reinf,
+					 prior_logsd_reinf(0),
+					 prior_logsd_reinf(1),
 				   true);
 	}
 

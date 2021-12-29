@@ -59,16 +59,25 @@
 
 ### high priority
 
-- explore current results more; diagnostics??
-- comparing fixed vs random vs pooled values. Ideally this could be done by fixing `log_sd` to a small (pooled) or large (fixed) value. Fixed effects are bad, especially with fake data, because several provinces have complete separation or close to it; if we make the SD of deltar large, the deltar estimates go as far toward ±∞ as we let them ...
+- inspect remaining wonky CIs (for fake data: 
+- why are some (but not all) reinf-RE CIs wonky?
+- why are Wald/delta-method CIs for EC (with btfake) wonky?
+- tmb_fit switch to turn off reinf REs?
+- document `tmb_compare.R` (fixed vs pooled vs RE)
+- outputs for province-specific beta-reinf values (parallel to deltar)
 
 ### cosmetic/cleanup
 
+- fix parameter ordering in predict_logistfit to avoid warnings/messages
 - unify shape handling for betabinomial
+- improve print method for logistfit objects? (named coeffs, etc.)?
+- `get_deltar` method for newparams, w/ and w/o CIs ? (parallel to predict method). Or flag for predict.logistfit?
+- refactor predict.logistfit?
+- make sure predictions (when confint = TRUE) are arranged by time (after completion/removal of orig data - why is this happening?)
+
 ### medium
 
 - explore reinf fits
-- random effects (especially of reinf)
 - importance sampling? 
 - `tmbstan`? (will need more priors?)
    - works, sort of, but we probably need priors on deltar, lodrop, logain to keep out of trouble
