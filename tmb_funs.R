@@ -483,7 +483,11 @@ mk_order <- function(x, v, anchor = "overall", FUN = mean) {
 }
 
 ##' return information from fit on population-level estimate and province-level values
-get_deltar <- function(fit, vnm = "log_deltar",
+##' @param fit fitted model
+##' @param vnm name of top-level parameter (overall value)
+##' @param vec_nm name of vector as returned by REPORT()/SDREPORT()
+## FIXME: 
+get_prov_params <- function(fit, vnm = "log_deltar",
                        vec_nm = paste0(vnm, "_vec"))
 {
     rr <- sdreport_split(fit)

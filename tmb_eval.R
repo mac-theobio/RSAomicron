@@ -112,7 +112,7 @@ coefplot <- (ggplot(tt2, aes(x = estimate, y = term))
 print(coefplot)
 
 ## plot of delta-r by province
-deltar_data <- get_deltar(fit)
+deltar_data <- get_prov_params(fit)
 gg2A <- (ggplot(deltar_data,
                 aes(y = prov, x = value))
     + ggtitle("delta-r by province")
@@ -123,7 +123,7 @@ print(gg2A + geom_pointrange(aes(xmin = lwr, xmax = upr)))
 
 if (uses_reinf(fit)) {
     ## plot of beta-refinf by province
-    reinf_data <- get_deltar(fit, "beta_reinf", "reinf_vec")
+    reinf_data <- get_prov_params(fit, "beta_reinf", "reinf_vec")
     gg2B <- (ggplot(reinf_data,
                     aes(y = prov, x = value))
         + ggtitle("reinf effect by province")

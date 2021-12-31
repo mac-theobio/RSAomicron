@@ -33,7 +33,7 @@
    - ∃ logistfit methods: `predict()` (prediction, expanding prov × time, with or without CIs), `simulate()`
    - TMB built-in functions: `fit$report()`, `TMB::sdreport(fit)`
    - `get_tmb_file(fit)`, `get_prov_names(fit)`, `get_data(fit)` retrieve carried-along info
-   - `get_deltar` gets the province-level values of deltar *and* the population-level estimate (`filter` it out if you don't want it ...)
+   - `get_prov_params` gets the province-level values of deltar (or beta_reinf) *and* the population-level estimate (`filter` it out if you don't want it ...)
 
 ## Perfect testing
 
@@ -64,14 +64,13 @@
 - why are Wald/delta-method CIs for EC (with btfake) wonky?
 - tmb_fit switch to turn off reinf REs?
 - document `tmb_compare.R` (fixed vs pooled vs RE)
-- outputs for province-specific beta-reinf values (parallel to deltar)
+- more priors/regularization?
 
 ### cosmetic/cleanup
 
 - fix parameter ordering in predict_logistfit to avoid warnings/messages
 - unify shape handling for betabinomial
 - improve print method for logistfit objects? (named coeffs, etc.)?
-- `get_deltar` method for newparams, w/ and w/o CIs ? (parallel to predict method). Or flag for predict.logistfit?
 - refactor predict.logistfit?
 - make sure predictions (when confint = TRUE) are arranged by time (after completion/removal of orig data - why is this happening?)
 
