@@ -149,6 +149,7 @@ Type objective_function<Type>::operator() ()
 	
 	REPORT(prob);
 	REPORT(log_deltar_vec);
+	REPORT(reinf_vec);
 	SIMULATE{
 		REPORT(omicron);
 	}
@@ -159,6 +160,7 @@ Type objective_function<Type>::operator() ()
 
 	ADREPORT(loprob);
 	ADREPORT(log_deltar_vec);
+	ADREPORT(reinf_vec);
 
 	if (debug > 1) std::cout << res << "\n";
 	

@@ -27,7 +27,7 @@ fit_list <- purrr::map(logsd_logdeltar_vals,
 fit_list <- c("RE"=list(tt0), fit_list)
 delta_est <- fit_list %>%
     purrr::map_dfr(get_deltar, .id = "model")
-gg0 <- (ggplot(delta_est, aes(x = deltar, y = prov, colour = model)) +
+gg0 <- (ggplot(delta_est, aes(x = value, y = prov, colour = model)) +
     geom_pointrange(aes(xmin=lwr, xmax = upr),
                     position = position_dodge(width = 0.75)) +
     scale_x_continuous(limits = c(0,0.8), oob = scales::squish)

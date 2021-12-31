@@ -114,7 +114,17 @@ print(coefplot)
 ## plot of delta-r by province
 deltar_data <- get_deltar(fit)
 gg2A <- (ggplot(deltar_data,
-                aes(y = prov, x = deltar)))
+                aes(y = prov, x = value)))
+
+## boring for fake data! width of CIs >>  range of values
+print(gg2A + geom_pointrange(aes(xmin = lwr, xmax = upr)))
+
+if (uses_reinf(fit)) {
+    ## plot of beta-refinf by province
+    deltar_data <- get_deltar(fit, "beta_reinf")
+gg2A <- (ggplot(deltar_data,
+                aes(y = prov, x = value)))
+}
 
 ## boring for fake data! width of CIs >>  range of values
 print(gg2A + geom_pointrange(aes(xmin = lwr, xmax = upr)))

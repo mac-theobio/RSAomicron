@@ -10,7 +10,7 @@
 
 ### incomplete
 
-- `gen_funs.R`: more utility functions (not TMB-specific; currently unused)
+- `gen_funs.R`: more utility functions (not TMB-specific; currently unused, only value is describing the logspace computations)
 
 ## Description
 

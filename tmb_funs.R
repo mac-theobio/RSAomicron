@@ -483,24 +483,25 @@ mk_order <- function(x, v, anchor = "overall", FUN = mean) {
 }
 
 ##' return information from fit on population-level estimate and province-level values
-get_deltar <- function(fit) {
+get_deltar <- function(fit, vnm = "log_deltar") {
     rr <- sdreport_split(fit)
-    v <- c(coef(fit)[["log_deltar"]],
-           rr$value$log_deltar_vec
+    vec_nm <- paste0(vnm, "_vec")
+    v <- c(coef(fit)[[vnm]],
+           rr$value[[vec_nm]]
            )
     s <- c(
         ## FIXME: re-extracting vcov is a little slow. Store it with the object?
-        sqrt(diag(vcov(fit)))[["log_deltar"]],
-        rr$sd$log_deltar_vec
+        sqrt(diag(vcov(fit)))[[vnm]],
+        rr$sd[[vec_nm]]
     )
-    deltar_data <- (tibble::tibble(
+    res <- (tibble::tibble(
         prov = c("overall", get_prov_names(fit)),
-        deltar = exp(v),
+        value = exp(v),
         lwr = exp(v - 1.96*s),
         upr = exp(v + 1.96*s))
-        |> dplyr::mutate(across(prov, mk_order, deltar))
+        |> dplyr::mutate(across(prov, mk_order, value))
     )
-    return(deltar_data)
+    return(res)
 }
 
 ## get sdreport if already stored, otherwise compute it
