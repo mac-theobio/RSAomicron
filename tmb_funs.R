@@ -483,9 +483,10 @@ mk_order <- function(x, v, anchor = "overall", FUN = mean) {
 }
 
 ##' return information from fit on population-level estimate and province-level values
-get_deltar <- function(fit, vnm = "log_deltar") {
+get_deltar <- function(fit, vnm = "log_deltar",
+                       vec_nm = paste0(vnm, "_vec"))
+{
     rr <- sdreport_split(fit)
-    vec_nm <- paste0(vnm, "_vec")
     v <- c(coef(fit)[[vnm]],
            rr$value[[vec_nm]]
            )
