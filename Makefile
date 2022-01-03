@@ -31,6 +31,8 @@ data: datadir=$(data)
 data: local.mk
 	/bin/ln -s $(data) $@
 
+## input: datadir=$($@)
+
 Sources += data.md
 pushdir = data/outputs
 
@@ -73,6 +75,11 @@ sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv
 ## Starting now with pre-aggregated data
 
 sgtf2.sr.agg.Rout: reagg.R data/sgtf_xmas.rds simDates.rda
+	$(pipeR)
+
+## Celebrating a new year of COVID!
+## ln -s 
+sgtf3.sr.agg.Rout: reagg.R data/sgtf_2022.rds simDates.rda
 	$(pipeR)
 
 sgtf_ref.sr.agg.Rout:
@@ -202,13 +209,9 @@ impmakeR += tmb_fit
 
 ## Evaluate fits
 
-## bsfake.sr.lsfit.tmb_eval.Rout: tmb_eval.R
-
+## bsfake.sr.ltfit.tmb_eval.Rout: tmb_eval.R
 ## bsfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
-## bsfake.sg.lsfit.tmb_eval.Rout: tmb_eval.R
-## btfake.sg.ltfit.tmb_eval.Rout: tmb_eval.R
 ## sgtf2.ddate2.sg.ltfit.tmb_eval.Rout: tmb_eval.R
-## sgtf2.ddate2.sg.lsfit.tmb_eval.Rout: tmb_eval.R
 impmakeR += tmb_eval
 %.tmb_eval.Rout: tmb_eval.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
@@ -228,25 +231,25 @@ impmakeR += tmb_ci
 %.tmb_ci_plot.Rout: tmb_ci_plot.R %.tmb_ci.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
-## bsfake.sg.lsfit.tmb_ensemble.Rout: tmb_ensemble.R
-## bsfake.sg.ltfit.tmb_ensemble.Rout: tmb_ensemble.R
+######################################################################
+
+## Split parameter ensemble from downstream stuff 2022 Jan 03 (Mon)
+
+## bsfake.sg.ltfit.tmb_params.Rout: tmb_params.R
+## bsfake.sr.ltfit.tmb_params.Rout: tmb_params.R
+impmakeR += tmb_params
+%.tmb_params.Rout: tmb_params.R %.tmb_fit.rds tmb_funs.rda logistic.so
+	$(pipeR)
 
 ## sgtf2.ddate2.sg.ltfit.tmb_ensemble.Rout: tmb_ensemble.R
 impmakeR += tmb_ensemble
-%.tmb_ensemble.Rout: tmb_ensemble.R %.tmb_fit.rds tmb_funs.rda logistic.so
+%.tmb_ensemble.Rout: tmb_ensemble.R %.tmb_params.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 %.tmb_predict_test.Rout: tmb_predict_test.R %.tmb_fit.rds tmb_funs.rda logistic.so
 	$(pipeR)
 
 ######################################################################
-
-## Repipe and understand?
-## sgtf2.ddate2.sg.ltfit.tmb_params.Rout: tmb_params.R
-## FIXME: Works only for theta parameterization
-impmakeR += tmb_params
-%.tmb_params.Rout: tmb_params.R %.tmb_fit.rds tmb_funs.rda logistic.so
-	$(pipeR)
 
 ## sgtf2.ddate2.sg.ltfit.tmb_params.rds: tmb_params.R
 ## sgtf2.olddate.sg.ltfit.tmb_params.rds: tmb_params.R
