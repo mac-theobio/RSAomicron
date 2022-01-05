@@ -15,23 +15,27 @@ vim_session:
 
 ######################################################################
 
+## Data linking
+
 Sources += Makefile $(wildcard *.make)
 
-## <edit> dubzee.make
-## dubzee.local:
-## /bin/rm -r data
-## data:
+local.mk:
+	echo 'Make local.mk by creating <user>.make and saying `make <user>.local`'
+	false
+
 %.local:
 	$(LN) $*.make local.mk
 
 -include local.mk
 
-Ignore += data
-data: datadir=$(data)
-data: local.mk
-	/bin/ln -s $(data) $@
+Ignore += data input
+data input: | local.mk
+	/bin/ln -fs $($@)
 
-## input: datadir=$($@)
+## Copy files from big to small dropbox
+.PRECIOUS: data/%
+data/%: input/%
+	$(copy)
 
 Sources += data.md
 pushdir = data/outputs
@@ -58,16 +62,10 @@ Sources += $(wildcard *.dict.tsv)
 
 ## Line-list sources and cleaning
 
-## Combined line list merged by CP 9 Dec
-## FIXME: does order-only rule do this better than $(MAKE)?
-data/%.rds:
-	$(MAKE) data
-
 ## Legacy rule for the first data set we used in this repo
+## Merging code is in omike and in osac
 sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
 	$(pipeR)
-## No other current sources
-## Merging code in omike or in osac
 
 ######################################################################
 
@@ -78,11 +76,9 @@ sgtf2.sr.agg.Rout: reagg.R data/sgtf_xmas.rds simDates.rda
 	$(pipeR)
 
 ## Celebrating a new year of COVID!
-## ln -s 
-sgtf3.sr.agg.Rout: reagg.R data/sgtf_2022.rds simDates.rda
+## ln -fs ~/Dropbox/omicronSA/input/sgtf_trim.rds data ##
+sgtf2022.sr.agg.Rout: reagg.R data/sgtf_trim.rds simDates.rda
 	$(pipeR)
-
-sgtf_ref.sr.agg.Rout:
 
 ######################################################################
 
