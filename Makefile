@@ -32,10 +32,11 @@ Ignore += data input
 data input: | local.mk
 	/bin/ln -fs $($@)
 
-## Copy files from big to small dropbox
+## Copy files from big to small dropbox; not all users have big dropbox
+## So the big dropbox (input) should be made manually
 .PRECIOUS: data/%
-data/%: input/%
-	$(copy)
+data/%: | data
+	$(CP) input/$* $@
 
 Sources += data.md
 pushdir = data/outputs
@@ -61,11 +62,7 @@ Sources += $(wildcard *.dict.tsv)
 ######################################################################
 
 ## Line-list sources and cleaning
-
-## Legacy rule for the first data set we used in this repo
-## Merging code is in omike and in osac
-sgtf_ref.sr.ll.Rout: sgtf_ref.R data/sgtf_ref.rds prov.dict.tsv 
-	$(pipeR)
+## lines.mk
 
 ######################################################################
 
@@ -82,12 +79,16 @@ sgtf2022.sr.agg.Rout: reagg.R data/sgtf_trim.rds simDates.rda
 
 ######################################################################
 
-## Aggregating into time series
+## New year scenarios
 
-impmakeR += sr.agg
-## simDates is for zeroDate
-%.sr.agg.Rout: sr_agg.R %.sr.ll.rds simDates.rda
+impmakeR += multi.sr.agg
+%.multi.sr.agg.Rout: reagg.R data/sgtf_%.rds simDates.rda
 	$(pipeR)
+
+scen = 30 60 90 hold trim
+scen = 30 60 hold trim
+
+######################################################################
 
 impmakeR += sg.agg
 %.sg.agg.Rout: sgtf_agg.R %.sr.agg.rds
@@ -250,6 +251,13 @@ impmakeR += tmb_ensemble
 
 ## sgtf2.ddate2.sg.ltfit.tmb_params.rds: tmb_params.R
 ## sgtf2.olddate.sg.ltfit.tmb_params.rds: tmb_params.R
+## 60.multi.ddate2.sr.ltfit.tmb_params.rds: tmb_params.R
+
+## Make a lot of scenario ensembles
+scenpush += $(scen:%=%.multi.ddate2.sr.ltfit.tmb_params.rds.pd)
+scenpush += $(scen:%=%.multi.olddate.sr.ltfit.tmb_params.rds.pd)
+scenpush: $(scenpush)
+
 ## NOT a target data/outputs/sgtf2.ddate2.sg.ltfit.tmb_params.rds
 
 ## btfake.sr.ltfit.tmb_ensemble.Rout:
@@ -257,6 +265,7 @@ impmakeR += tmb_ensemble
 ## sgtf2.ddate2.sr.ltfit.tmb_eval.Rout:
 ## sgtf2.ddate2.sr.ltfit.tmb_ensemble.Rout:
 ## sgtf2.ddate2.sr.ltfit.tmb_ci.Rout:
+## sgtf2.ddate2.sr.ltfit.tmb_ci_plot.Rout:
 ## sgtf2.ddate2.sr.ltfit.tmb_ci_plot.Rout:
 
 ######################################################################
