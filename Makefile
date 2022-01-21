@@ -87,6 +87,7 @@ impmakeR += multi.sr.agg
 
 scen = 30 60 90 hold trim
 scen = 30 60 hold trim
+scen = 90
 
 ######################################################################
 
@@ -255,7 +256,7 @@ impmakeR += tmb_ensemble
 
 ## Make a lot of scenario ensembles
 scenpush += $(scen:%=%.multi.ddate2.sr.ltfit.tmb_params.rds.pd)
-scenpush += $(scen:%=%.multi.olddate.sr.ltfit.tmb_params.rds.pd)
+## scenpush += $(scen:%=%.multi.olddate.sr.ltfit.tmb_params.rds.pd)
 scenpush: $(scenpush)
 
 ## NOT a target data/outputs/sgtf2.ddate2.sg.ltfit.tmb_params.rds
