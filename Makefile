@@ -79,25 +79,44 @@ sgtf2022.sr.agg.Rout: reagg.R data/sgtf_trim.rds simDates.rda
 
 ######################################################################
 
+## No EC
+
+######################################################################
+
 ## New year scenarios
 
+scen = 90
+scen = 30 60 hold trim
+scen = 30 60 90 hold trim
+
+######################################################################
+
+## Aggregate across provinces
+
 impmakeR += multi.sr.agg
+## 30.multi.sr.agg.Rout: 
 %.multi.sr.agg.Rout: reagg.R data/sgtf_%.rds simDates.rda
 	$(pipeR)
 
-scen = 30 60 90 hold trim
-scen = 30 60 hold trim
-scen = 90
+######################################################################
+
+## Optionally eliminate Easter Cape
+
+impmakeR += noec.sr.agg
+## 90.noec.sr.agg.Rout: noec.R 
+%.noec.sr.agg.Rout: noec.R %.multi.sr.agg.rds
+	$(pipeR)
 
 ######################################################################
 
 impmakeR += sg.agg
 %.sg.agg.Rout: sgtf_agg.R %.sr.agg.rds
+%.sg.agg.Rout: sgtf_agg.R %.sr.agg.rds
 	$(pipeR)
 
 ######################################################################
 
-## Date stuff
+## Date stuff 
 
 ## Drop the last two days
 impmakeR += chop2.sr.agg
@@ -255,9 +274,15 @@ impmakeR += tmb_ensemble
 ## 60.multi.ddate2.sr.ltfit.tmb_params.rds: tmb_params.R
 
 ## Make a lot of scenario ensembles
-scenpush += $(scen:%=%.multi.ddate2.sr.ltfit.tmb_params.rds.pd)
-## scenpush += $(scen:%=%.multi.olddate.sr.ltfit.tmb_params.rds.pd)
-scenpush: $(scenpush)
+## scenpush.makevar:
+scenpush += $(scen:%=%.multi.ddate2.sr.ltfit.tmb_params.rds.pd.continue)
+scenpush += $(scen:%=%.multi.olddate.sr.ltfit.tmb_params.rds.pd.continue)
+
+## exppush.makevar:
+exppush += $(scen:%=%.noec.ddate2.sr.ltfit.tmb_params.rds.pd.continue)
+exppush += $(scen:%=%.noec.olddate.sr.ltfit.tmb_params.rds.pd.continue)
+
+######################################################################
 
 ## NOT a target data/outputs/sgtf2.ddate2.sg.ltfit.tmb_params.rds
 
