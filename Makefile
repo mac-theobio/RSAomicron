@@ -28,6 +28,10 @@ local.mk:
 
 -include local.mk
 
+######################################################################
+
+## input is the big dropbox; data is the small
+
 Ignore += data input
 data input: | local.mk
 	/bin/ln -fs $($@)
@@ -37,6 +41,9 @@ data input: | local.mk
 .PRECIOUS: data/%
 data/%: | data
 	$(CP) input/$* $@
+
+data_reset:
+	$(RM) data/sgtf_*.rds
 
 Sources += data.md
 pushdir = data/outputs
