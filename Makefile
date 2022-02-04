@@ -45,6 +45,9 @@ data/%: | data
 data_reset:
 	$(RM) data/sgtf_*.rds
 
+data_copy:
+	$(CP) input/sgtf_*.rds data/
+
 Sources += data.md
 pushdir = data/outputs
 
