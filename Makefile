@@ -34,7 +34,7 @@ local.mk:
 
 Ignore += data input
 data input: | local.mk
-	/bin/ln -fs $($@)
+	/bin/ln -fs $($@) $@
 
 ## Copy files from big to small dropbox; not all users have big dropbox
 ## So the big dropbox (input) should be made manually
