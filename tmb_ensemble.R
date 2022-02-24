@@ -10,6 +10,8 @@ rpcall("btfake.sr.tmb_ensemble.Rout tmb_ensemble.R btfake.sr.ltfit.tmb_fit.rds t
 
 startGraphics()
 
+fit <- rdsRead()
+
 pp1 <- predict(fit, perfect_tests = TRUE, confint = TRUE)
 
 base <- (mk_completedata(fit)[c("prov", "time", "reinf")]

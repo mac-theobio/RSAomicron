@@ -84,7 +84,7 @@ sgtf2.sr.agg.Rout: reagg.R data/sgtf_xmas.rds simDates.rda
 
 ## Celebrating a new year of COVID!
 ## ln -fs ~/Dropbox/omicronSA/input/sgtf_trim.rds data ##
-sgtf2022.sr.agg.Rout: reagg.R data/sgtf_trim.rds simDates.rda
+sgtf2022.sr.agg.Rout: reagg.R data/sgtf_xmas.rds simDates.rda
 	$(pipeR)
 
 ######################################################################
@@ -229,7 +229,7 @@ impmakeR += lsfit.ts
 
 ## Fit
 
-## bsfake.sg.ltfit.tmb_fit.Rout: tmb_fit.R
+## sgtf2.ddate2.sg.ltfit.tmb_fit.Rout: tmb_fit.R
 impmakeR += tmb_fit
 %.tmb_fit.Rout: tmb_fit.R %.ts.rds %.ts.rda logistic.so tmb_funs.rda
 	$(pipeR)
@@ -263,7 +263,7 @@ impmakeR += tmb_ci
 ## Split parameter ensemble from downstream stuff 2022 Jan 03 (Mon)
 ## Not finished!!
 
-## bsfake.sg.ltfit.tmb_params.Rout: tmb_params.R
+## sgtf2.ddate2.sg.ltfit.tmb_params.Rout: tmb_params.R
 ## bsfake.sr.ltfit.tmb_params.Rout: tmb_params.R
 impmakeR += tmb_params
 %.tmb_params.Rout: tmb_params.R %.tmb_fit.rds tmb_funs.rda logistic.so

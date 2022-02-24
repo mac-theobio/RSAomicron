@@ -7,6 +7,8 @@ library(shellpipes)
 rpcall("btfake.sg.tmb_ensemble.Rout tmb_ensemble.R btfake.sg.ltfit.tmb_fit.rds tmb_funs.rda logistic.so")
 
 nsim <- 500
+nsim <- 2
+mike_hack <- TRUE
 
 fit <- rdsRead()
 loadEnvironments()
@@ -18,6 +20,50 @@ pop_vals <- as.data.frame(MASS::mvrnorm(nsim
 	, mu = coef(fit, random = TRUE)
 	, Sigma = vcov(fit, random =TRUE)
 ))
+
+
+if(mike_hack){
+## What we want to do is to recreate pop_vals in the same structure but fixed some parameters and do a multivariate normal using a reduced covariance matrix
+## There are two options: keep the current structure (with all PT) vs doing the PT individually
+
+
+## option 1
+	fixed_pars <- c("lodrop","logain","log_theta")
+
+	cc <- coef(fit,random=TRUE)
+
+	fixed_pars_position <- which(names(cc) %in% fixed_pars)
+
+	new_cc <- cc[-fixed_pars_position]
+
+#	print(new_cc)
+
+	new_vcov <- vcov(fit, random = TRUE)[-fixed_pars_position,-fixed_pars_position]
+
+#	print(new_vcov)
+
+	new_pop_vals <- as.data.frame(MASS::mvrnorm(nsim
+			, mu = new_cc
+			, Sigma = new_vcov
+			)
+	)
+
+	print(cc[fixed_pars_position])
+
+	fixed_pars_df <- t(as.data.frame(cc[fixed_pars_position]))[rep(1,nsim),]
+		
+	rownames(fixed_pars_df) <- NULL
+	colnames(fixed_pars_df) <- names(cc[fixed_pars_position])
+	new_pop_vals <- (cbind(new_pop_vals,fixed_pars_df)
+		%>% select(names(cc))
+	)
+	print(new_pop_vals)
+}
+
+
+
+quit()
+
 
 ## reconstruct deltar for each province
 ## FIXME: tidy this (rowwise?)
