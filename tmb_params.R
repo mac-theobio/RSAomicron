@@ -21,6 +21,9 @@ pop_vals <- as.data.frame(MASS::mvrnorm(nsim
 	, Sigma = vcov(fit, random =TRUE)
 ))
 
+print(pop_vals)
+print(dim(pop_vals))
+
 
 if(mike_hack){
 ## What we want to do is to recreate pop_vals in the same structure but fixed some parameters and do a multivariate normal using a reduced covariance matrix
@@ -54,10 +57,13 @@ if(mike_hack){
 		
 	rownames(fixed_pars_df) <- NULL
 	colnames(fixed_pars_df) <- names(cc[fixed_pars_position])
-	new_pop_vals <- (cbind(new_pop_vals,fixed_pars_df)
-		%>% select(names(cc))
+	new_pop_vals <- (bind_cols(new_pop_vals,fixed_pars_df)
 	)
+	
+	## Need to work on the names
 	print(new_pop_vals)
+
+	print(dim(new_pop_vals))
 }
 
 
