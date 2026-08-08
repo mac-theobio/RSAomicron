@@ -11,7 +11,7 @@ Ignore = target.mk
 # -include makestuff/perl.def
 
 vim_session:
-	bash -cl "vmt README.md journal.md mle.mk README_TMB.md"
+	bash -ic "vmt README.md journal.md mle.mk README_TMB.md"
 
 ######################################################################
 
